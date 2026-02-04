@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Navbar from "@/shared/components/NavBar";
+import Navbar from "@/shared/components/NavBarPublic";
 import { ArrowRight } from 'lucide-react';
 
 export default function Home() {
@@ -22,9 +22,9 @@ export default function Home() {
         </div>
 
         {/* Headline */}
-        <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 tracking-tight mb-8 leading-[1.1]">
+        <h1 className="text-5xl md:text-6xl font-extrabold text-[#124076] tracking-tight mb-8 leading-[1.1]">
           Empower Your Community, <span></span>
-          <span className="text-blue-600">Fix Your Neighbourhood</span>
+          <span className="text-[#30a59c]">Fix Your Neighbourhood</span>
         </h1>
 
         {/* Subtext */}
@@ -34,7 +34,7 @@ export default function Home() {
 
         {/* CTAs */}
         <div className="flex sm:flex-row items-center justify-center gap-4">
-          <button className="flex items-center justify-center px-7 py-3 bg-blue-600 rounded-full text-white font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-200 hover:-translate-y-1 w-full sm:w-auto group cursor-pointer">
+          <button className="flex items-center justify-center px-7 py-3 bg-[#124076] rounded-full text-white font-semibold hover:bg-[#e8a947] transition-all shadow-lg hover:shadow-blue-200 hover:-translate-y-1 w-full sm:w-auto group cursor-pointer">
             Browse Reports
             <ArrowRight size={20} className="ml-2 group-hover:translate-x-1 transition-transform" />
           </button>
