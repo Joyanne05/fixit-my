@@ -1,8 +1,78 @@
+"use client";
+import NavBarPrivate from "@/shared/components/NavBarPrivate";
+import { api } from "@/lib/apiClient";
+import { useEffect, useState } from "react";
+import ReportCard from "./components/ReportCard";
+import ReportSkeleton from "./components/ReportSkeleton";
+import { Report, ReportStatus } from "@/types/report";
+
+
+function timeAgo(dateString: string) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  if (seconds < 60) return `${seconds} seconds ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} minutes ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hours ago`;
+  const days = Math.floor(hours / 24);
+  return `${days} days ago`;
+}
+
 export default function DashboardPage() {
+  const [reports, setReports] = useState<Report[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await api.get('/report/list');
+        // Map backend fields to frontend Report type
+        const mappedReports: Report[] = response.data.reports.map((r: any) => ({
+          id: r.report_id?.toString() || r.id?.toString(),
+          title: r.title,
+          description: r.description,
+          imageUrl: r.photo_url || '',
+          status: r.status === 'open' ? ReportStatus.OPEN
+            : r.status === 'in_progress' ? ReportStatus.IN_PROGRESS
+              : ReportStatus.RESOLVED,
+          timestamp: r.created_at ? timeAgo(r.created_at) : '',
+          location: r.location || '',
+          category: r.category || '',
+          is_following: r.is_following,
+          followers_count: r.followers_count,
+        }));
+        setReports(mappedReports);
+        console.log("Fetched reports:", mappedReports);
+      } catch (error) {
+        console.error("Error fetching reports:", error);
+      }
+    };
+
+    fetchData().finally(() => setIsLoading(false));
+  }, []);
+
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-white font-sans dark:bg-gray-900">
-      <h1 className="text-4xl font-bold mb-6 text-gray-900 dark:text-white">Welcome to Your Dashboard</h1>
-      <p className="text-lg text-gray-700 dark:text-gray-300">You are successfully logged in!</p>
-    </div>
+    <>
+      <NavBarPrivate />
+      <div className="pt-25 w-full min-h-screen p-15 bg-white dark:bg-gray-900">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
+          {isLoading ? (
+            Array.from({ length: 8 }).map((_, i) => (
+              <ReportSkeleton key={i} />
+            ))
+          ) : (
+            reports.map(report => (
+              <ReportCard key={report.id} report={report} />
+            ))
+          )}
+        </div>
+      </div>
+
+
+
+    </>
   );
 }
