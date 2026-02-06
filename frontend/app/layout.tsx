@@ -30,6 +30,7 @@ export const viewport = {
 };
 
 import InstallPrompt from "@/shared/components/InstallPrompt";
+import OfflineIndicator from "@/shared/components/OfflineIndicator";
 
 export default function RootLayout({
   children,
@@ -42,6 +43,7 @@ export default function RootLayout({
         className={`${inter.variable} ${outfit.variable} ${playfair.variable} antialiased`}
       >
         {children}
+        <OfflineIndicator />
         <InstallPrompt />
       </body>
     </html>
