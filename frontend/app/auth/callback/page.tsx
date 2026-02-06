@@ -26,7 +26,7 @@ export default function AuthCallbackPage() {
       if (data.session) {
         // Run your sync
         try {
-          console.log("Access token: ", data.session.access_token); 
+          // console.log("Access token: ", data.session.access_token); 
           await api.post(
             "/auth/sync-user",
             {},

@@ -8,7 +8,7 @@ export const api = axios.create({
 api.interceptors.request.use(async (config) => {
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
-  console.log("Token: ", token);
+  // console.log("Token: ", token);
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
