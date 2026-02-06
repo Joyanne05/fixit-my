@@ -17,21 +17,28 @@ const Navbar: React.FC = () => {
                 <div className="flex justify-between items-center h-20">
 
                     {/* Logo */}
-                    <div className="flex-shrink-0 flex items-center gap-4 cursor-pointer">
-                        <div className="w-10 h-10 bg-brand-primary rounded-lg flex items-center justify-center text-white">
-                            <img src="/fixitmy_logo.jpg" alt="FixItMY Logo" />
+                    <div
+                        onClick={() => router.push("/dashboard")}
+                        className="flex-shrink-0 flex items-center gap-2 sm:gap-4 cursor-pointer"
+                    >
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-brand-primary rounded-lg overflow-hidden flex items-center justify-center text-white ring-2 ring-brand-primary/10">
+                            <img src="/fixitmy_logo.jpg" alt="FixItMY Logo" className="w-full h-full object-cover" />
                         </div>
-                        <span className="font-bold text-xl tracking-tight text-gray-900">FixItMY</span>
+                        <span className="font-bold text-lg sm:text-xl tracking-tight text-gray-900 hidden xs:block">FixItMY</span>
                     </div>
 
 
-                    {/* Desktop Actions */}
-                    <div className="md:flex items-center space-x-6">
-                        {/* <button className="text-sm font-semibold text-gray-700 hover:text-gray-900">Sign In</button> */}
-                        <button onClick={() => router.push("/dashboard/report")} className="cursor-pointer bg-brand-primary text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm hover:shadow-md">
-                            Report an Issue
+                    {/* Actions */}
+                    <div className="flex items-center space-x-3 sm:space-x-6">
+                        <button
+                            onClick={() => router.push("/dashboard/report")}
+                            className="cursor-pointer bg-brand-primary text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all shadow-sm hover:shadow-md active:scale-95"
+                        >
+                            + Report Issue
                         </button>
-                        <button className="cursor-pointer shadow-sm px-2 py-2 rounded-lg"><CircleUser /></button>
+                        <button className="cursor-pointer shadow-sm p-2 rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors border border-gray-100">
+                            <CircleUser size={20} />
+                        </button>
                     </div>
 
 

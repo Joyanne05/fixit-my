@@ -60,7 +60,7 @@ export default function DashboardPage() {
   return (
     <>
       <NavBarPrivate />
-      <div className="pt-25 w-full min-h-screen p-25 bg-white dark:bg-gray-900">
+      <div className="pt-20 sm:pt-24 w-full min-h-screen px-4 sm:px-8 lg:px-16 py-6 bg-white">
         <div className="flex flex-col mb-6">
           <h1 className="text-3xl font-bold">Public report feed</h1>
           <p className="text-sm text-gray-500">View and track real-time reports from the community</p>
