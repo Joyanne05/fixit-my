@@ -1,9 +1,10 @@
 "use client";
 import React, { useState } from 'react';
-import { Camera, CheckCircle, ChevronDown, User, ArrowLeft } from 'lucide-react';
+import { Camera, CheckCircle, ChevronDown, User, ArrowLeft, WifiOff } from 'lucide-react';
 import { api } from '@/lib/apiClient';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
+import Modal from '@/shared/components/Modal';
 
 
 
@@ -11,6 +12,7 @@ const CreateReportForm = () => {
   const router = useRouter();
   const [dragActive, setDragActive] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     title: '',
@@ -60,6 +62,12 @@ const CreateReportForm = () => {
       setErrorMsg("Please fill in all required fields.");
       return;
     }
+
+    if (!navigator.onLine) {
+      setErrorMsg("You are currently offline. Please connect to the internet to submit request.");
+      return;
+    }
+
     setErrorMsg("");
     const formData = new FormData();
     formData.append('title', form.title);
@@ -89,7 +97,8 @@ const CreateReportForm = () => {
         photo: null
       });
       setSelectedFiles([]);
-      router.push('/dashboard');
+      // Show success modal instead of direct push
+      setShowSuccessModal(true);
     } catch (error) {
       console.error("Error submitting report:", error);
       // Do not redirect if error
@@ -268,6 +277,27 @@ const CreateReportForm = () => {
 
         </div>
       </div>
+      <Modal
+        isOpen={showSuccessModal}
+        onClose={() => router.push('/dashboard')}
+        title="Report Submitted"
+      >
+        <div className="text-center py-4">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="text-green-600" size={32} />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Thank you for your report!</h3>
+          <p className="text-gray-600 mb-6">
+            Your issue has been successfully submitted and is now pending review. You can track its status in the dashboard.
+          </p>
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="w-full bg-brand-primary text-white py-3 rounded-lg font-semibold hover:bg-brand-secondary transition-colors"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };
