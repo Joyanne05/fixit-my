@@ -7,11 +7,11 @@ import ReportSkeleton from "./components/ReportSkeleton";
 import { Report, ReportStatus } from "@/types/report";
 import { supabase } from "@/lib/supabaseClient";
 
-
 function timeAgo(dateString: string) {
   const date = new Date(dateString);
   const now = new Date();
   const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  if (seconds < 5) return 'Just now';
   if (seconds < 60) return `${seconds} seconds ago`;
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `${minutes} minutes ago`;
@@ -26,6 +26,7 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+
     const fetchData = async () => {
       try {
         const response = await api.get('/report/list');
@@ -36,8 +37,9 @@ export default function DashboardPage() {
           description: r.description,
           imageUrl: r.photo_url || '',
           status: r.status === 'open' ? ReportStatus.OPEN
-            : r.status === 'in_progress' ? ReportStatus.IN_PROGRESS
-              : ReportStatus.RESOLVED,
+            : r.status === 'acknowledged' ? ReportStatus.ACKNOWLEDGED
+              : r.status === 'in_progress' ? ReportStatus.IN_PROGRESS
+                : ReportStatus.RESOLVED,
           timestamp: r.created_at ? timeAgo(r.created_at) : '',
           location: r.location || '',
           category: r.category || '',

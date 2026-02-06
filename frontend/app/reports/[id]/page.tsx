@@ -4,28 +4,17 @@ import NavBarPrivate from "@/shared/components/NavBarPrivate";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/apiClient";
 import {
-    Bell,
-    CheckCircle2,
-    Circle,
-    User,
-    MessageSquare,
-    ArrowLeft,
-    Lock,
-    Check,
-    ImageOff,
-    Zap,
-    Droplets,
-    Trees,
-    ShieldAlert,
-    HardHat
+    Bell, CheckCircle2, Circle, User, MessageSquare, ArrowLeft, Lock, Check, ImageOff, Zap, Droplets, Trees, ShieldAlert, HardHat, SendHorizontal
 } from "lucide-react";
-
 import { Report, ReportStatus, ReportDetailResponse, ReportFollower } from "@/types/report";
+import { Comment, CommentResponse } from "@/types/comment";
+
 
 function timeAgo(dateString: string) {
     const date = new Date(dateString);
     const now = new Date();
     const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    if (seconds < 5) return 'Just now';
     if (seconds < 60) return `${seconds} seconds ago`;
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `${minutes} minutes ago`;
@@ -37,7 +26,7 @@ function timeAgo(dateString: string) {
 
 const statusSteps = [
     { id: ReportStatus.OPEN, label: 'Open' },
-    { id: 'acknowledged', label: 'Acknowledged' },
+    { id: ReportStatus.ACKNOWLEDGED, label: 'Acknowledged' },
     { id: ReportStatus.IN_PROGRESS, label: 'In Progress' },
     { id: ReportStatus.RESOLVED, label: 'Closed' }
 ];
@@ -63,11 +52,16 @@ const getCategoryGradient = (category: string) => {
 };
 
 export default function ReportDetailPage() {
+
     const { id } = useParams();
     const router = useRouter();
     const [report, setReport] = useState<Report | null>(null);
-    const [isFollowing, setIsFollowing] = useState(report?.is_following);
+    const [isFollowing, setIsFollowing] = useState(false);
     const [followers, setFollowers] = useState<ReportFollower[]>([]);
+    const [followersCount, setFollowersCount] = useState(0);
+    const [comments, setComments] = useState<Comment[]>([]);
+    const [newComment, setNewComment] = useState("");
+    const [postingComment, setPostingComment] = useState(false);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -75,7 +69,6 @@ export default function ReportDetailPage() {
             try {
                 const response = await api.get<ReportDetailResponse>(`/report/${id}`);
                 const { report: apiReport, followers, is_following } = response.data;
-                console.log("Individual report", apiReport);
 
                 // Map to shared Report type
                 const mappedReport: Report = {
@@ -84,8 +77,9 @@ export default function ReportDetailPage() {
                     description: apiReport.description,
                     category: apiReport.category,
                     status: apiReport.status === 'open' ? ReportStatus.OPEN
-                        : apiReport.status === 'in_progress' ? ReportStatus.IN_PROGRESS
-                            : ReportStatus.RESOLVED,
+                        : apiReport.status === 'acknowledged' ? ReportStatus.ACKNOWLEDGED
+                            : apiReport.status === 'in_progress' ? ReportStatus.IN_PROGRESS
+                                : ReportStatus.RESOLVED,
                     location: apiReport.location,
                     imageUrl: apiReport.photo_url,
                     created_at: apiReport.created_at,
@@ -100,6 +94,13 @@ export default function ReportDetailPage() {
 
                 setReport(mappedReport);
                 setFollowers(followers);
+                setFollowersCount(followers.length);
+                setIsFollowing(is_following); // Set local state from API
+
+                // Fetch comments
+                const commentsResponse = await api.get<CommentResponse>(`/report/comments/${id}`);
+                setComments(commentsResponse.data.comments);
+
             } catch (error) {
                 console.error("Error fetching report:", error);
             } finally {
@@ -111,14 +112,44 @@ export default function ReportDetailPage() {
     }, [id]);
 
     async function handleFollow() {
-        // console.log("Report id ", report?.id);
-        // console.log("Is following ", isFollowing);
         if (!isFollowing) {
             await api.post(`/report/follow`, { report_id: report?.id });
             setIsFollowing(true);
+            setFollowersCount(prev => prev + 1);
         } else {
             await api.post(`/report/unfollow`, { report_id: report?.id });
             setIsFollowing(false);
+            setFollowersCount(prev => prev - 1);
+        }
+    }
+
+    async function handlePostComment() {
+        if (!newComment.trim()) return;
+
+        setPostingComment(true);
+        try {
+            await api.post(`/report/comment/${id}`, { report_id: id, comment: newComment });
+
+            // Re-fetch comments to get the real data
+            const commentsResponse = await api.get<CommentResponse>(`/report/comments/${id}`);
+            setComments(commentsResponse.data.comments);
+
+            // Re-fetch report to get updated status
+            const reportResponse = await api.get<ReportDetailResponse>(`/report/${id}`);
+            const { report: apiReport } = reportResponse.data;
+            setReport(prev => prev ? {
+                ...prev,
+                status: apiReport.status === 'open' ? ReportStatus.OPEN
+                    : apiReport.status === 'in_progress' ? ReportStatus.IN_PROGRESS
+                        : apiReport.status === 'acknowledged' ? ReportStatus.ACKNOWLEDGED
+                            : ReportStatus.RESOLVED
+            } : prev);
+
+            setNewComment("");
+        } catch (error) {
+            console.error("Error posting comment:", error);
+        } finally {
+            setPostingComment(false);
         }
     }
 
@@ -170,7 +201,7 @@ export default function ReportDetailPage() {
                         <div>
                             <h1 className="text-4xl font-extrabold text-gray-900 mb-3 tracking-tight">{report.title}</h1>
                             <p className="text-gray-500 flex items-center gap-2 text-sm">
-                                Reported by {report.user?.name || 'Anonymous user'} • {report.created_at ? new Date(report.created_at).toLocaleDateString() : ''} in {report.location}
+                                Reported by {report.user?.name || 'Anonymous user'}, at {report.location}
                             </p>
                         </div>
 
@@ -197,7 +228,7 @@ export default function ReportDetailPage() {
 
                         {statusSteps.map((step, index) => {
                             const isActive = report.status === step.id;
-                            const isPast = [ReportStatus.OPEN, 'acknowledged', ReportStatus.IN_PROGRESS, ReportStatus.RESOLVED].indexOf(report.status) >= index;
+                            const isPast = [ReportStatus.OPEN, ReportStatus.ACKNOWLEDGED, ReportStatus.IN_PROGRESS, ReportStatus.RESOLVED].indexOf(report.status) >= index;
 
                             let dateDisplay = 'Upcoming';
                             if (step.id === ReportStatus.OPEN && report.created_at) {
@@ -239,10 +270,10 @@ export default function ReportDetailPage() {
                     </div>
 
                     <div className="flex gap-4 w-full sm:w-auto">
-                        <button className="flex-1 sm:flex-none border-2 border-green-100 text-green-600 px-6 py-3 rounded-xl font-bold hover:bg-green-50 transition-colors">
+                        <button className="flex-1 sm:flex-none border-2 border-green-100 text-green-600 px-6 py-3 rounded-xl cursor-pointer font-bold hover:bg-green-50 transition-colors">
                             Mark In Progress
                         </button>
-                        <button className="flex-1 sm:flex-none bg-brand-primary text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-green-200 hover:bg-brand-secondary transition-all flex items-center justify-center gap-2">
+                        <button className="flex-1 sm:flex-none bg-brand-primary text-white px-6 py-3 rounded-xl font-bold shadow-lg cursor-pointer hover:bg-brand-secondary transition-all flex items-center justify-center gap-2">
                             <CheckCircle2 size={18} />
                             Mark as Closed
                         </button>
@@ -362,7 +393,7 @@ export default function ReportDetailPage() {
                             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-6 mt-2">Community Interest</h3>
                             <div className="flex items-center gap-6 mb-6">
                                 <div>
-                                    <p className="text-4xl font-extrabold text-gray-900">{report.followers_count}</p>
+                                    <p className="text-4xl font-extrabold text-gray-900">{followersCount}</p>
                                     <p className="text-sm font-medium text-gray-400 mt-1">Followers</p>
                                 </div>
                                 <div className="w-px h-12 bg-gray-100"></div>
@@ -391,36 +422,51 @@ export default function ReportDetailPage() {
                         {/* Public Updates */}
                         <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm h-fit">
                             <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Public Updates</h3>
+                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Public Comments</h3>
                                 <MessageSquare size={16} className="text-gray-400" />
                             </div>
 
-                            <div className="space-y-6 pl-4 border-l-2 border-gray-100 relative">
-                                <div className="relative">
-                                    <div className="absolute -left-[21px] top-1 h-3 w-3 rounded-full bg-brand-primary ring-4 ring-white"></div>
-                                    <h4 className="font-bold text-gray-900 text-sm">Maintenance Team Acknowledged</h4>
-                                    <p className="text-gray-500 text-xs mt-1 leading-relaxed">Scheduled for inspection within 48 hours.</p>
-                                    <p className="text-xs text-gray-400 mt-2 font-medium">2 days ago</p>
-                                </div>
-
-                                <div className="relative">
-                                    <div className="absolute -left-[21px] top-1">
-                                        <img src="https://i.pravatar.cc/100?img=33" className="w-8 h-8 rounded-full border-2 border-white shadow-sm" alt="" />
+                            {/* Scrollable Container */}
+                            <div className="space-y-6 pl-8 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+                                {comments.length === 0 ? (
+                                    <div className="text-center py-8 text-gray-400 text-sm">
+                                        No updates yet. Be the first to comment.
                                     </div>
-                                    <div className="pl-4">
-                                        <h4 className="font-bold text-gray-900 text-sm">Mark Thompson</h4>
-                                        <p className="text-gray-500 text-xs mt-1 leading-relaxed">I saw the crew surveying this morning. They put up orange cones around it for now.</p>
-                                        <p className="text-xs text-gray-400 mt-2 font-medium">1 day ago</p>
-                                    </div>
-                                </div>
+                                ) : (
+                                    comments.map((comment, i) => (
+                                        <div key={i} className="relative">
+                                            <div className="absolute -left-8 top-0 bg-white py-1">
+                                                <img src={comment.users?.avatar || "https://i.pravatar.cc/100?img=33"} className="w-8 h-8 rounded-full border-2 border-white shadow-sm" alt="" />
+                                            </div>
+                                            <div className="pl-4">
+                                                <h4 className="font-bold text-gray-900 text-sm">{comment.users?.name}</h4>
+                                                <p className="text-gray-500 text-xs font-medium mt-1 leading-relaxed">{comment.comment}</p>
+                                                <p className="text-xs text-gray-400 mt-1 font-light">{timeAgo(comment.created_at)}</p>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
                             </div>
 
                             <div className="mt-6 pt-4 border-t border-gray-50">
-                                <input
-                                    type="text"
-                                    placeholder="Add an update or comment..."
-                                    className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-primary/20"
-                                />
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Add an update or comment..."
+                                        className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-primary/20 pr-12"
+                                        value={newComment}
+                                        onChange={(e) => setNewComment(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handlePostComment()}
+                                        disabled={postingComment}
+                                    />
+                                    <button
+                                        onClick={handlePostComment}
+                                        disabled={!newComment.trim() || postingComment}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-brand-primary hover:bg-brand-bg-light rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        <SendHorizontal size={18} />
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

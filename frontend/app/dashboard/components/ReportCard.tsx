@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Report, ReportStatus } from '../../../types/report';
 import { UserCheck, ImageOff, Zap, Droplets, Trees, ShieldAlert, HardHat, HelpCircle } from 'lucide-react';
 import { useRouter } from "next/navigation";
@@ -11,6 +11,7 @@ interface ReportCardProps {
 
 const statusColors: Record<ReportStatus, string> = {
   [ReportStatus.OPEN]: 'bg-blue-100 text-blue-700',
+  [ReportStatus.ACKNOWLEDGED]: 'bg-green-100 text-green-700',
   [ReportStatus.IN_PROGRESS]: 'bg-yellow-100 text-yellow-800',
   [ReportStatus.RESOLVED]: 'bg-brand-bg-light text-brand-primary'
 };
@@ -36,7 +37,8 @@ const getCategoryGradient = (category: string) => {
 };
 
 const ReportCard: React.FC<ReportCardProps> = ({ report }) => {
-  const [isFollowing, setIsFollowing] = React.useState(report.is_following);
+  const [isFollowing, setIsFollowing] = useState(report.is_following);
+  const [followersCount, setFollowersCount] = useState(report.followers_count);
 
   async function handleFollow(e: React.MouseEvent<HTMLButtonElement>) {
     e.stopPropagation();
@@ -47,12 +49,14 @@ const ReportCard: React.FC<ReportCardProps> = ({ report }) => {
       //Follow logic 
       const res = api.post(`/report/follow`, { report_id: report.id });
       setIsFollowing(true);
+      setFollowersCount(prev => prev + 1);
       console.log("Follow response ", res);
     } else {
       // Unfollow logic 
       const res = api.post(`/report/unfollow`, { report_id: report.id });
       console.log("Unfollow response ", res);
       setIsFollowing(false);
+      setFollowersCount(prev => prev - 1);
     }
   }
 
@@ -97,7 +101,7 @@ const ReportCard: React.FC<ReportCardProps> = ({ report }) => {
         <div className="flex items-center gap-2 text-gray-500">
           <UserCheck size={16} />
           <span className="text-sm font-medium">
-            {report.followers_count} {report.followers_count === 1 ? 'follower' : 'followers'}
+            {followersCount} {followersCount === 1 ? 'follower' : 'followers'}
           </span>
         </div>
 

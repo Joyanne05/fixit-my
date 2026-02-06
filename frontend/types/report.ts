@@ -1,5 +1,6 @@
 export enum ReportStatus {
   OPEN = 'OPEN',
+  ACKNOWLEDGED = 'ACKNOWLEDGED',
   IN_PROGRESS = 'IN PROGRESS',
   RESOLVED = 'RESOLVED'
 }
