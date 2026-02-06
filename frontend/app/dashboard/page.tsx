@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import ReportCard from "./components/ReportCard";
 import ReportSkeleton from "./components/ReportSkeleton";
 import { Report, ReportStatus } from "@/types/report";
+import { supabase } from "@/lib/supabaseClient";
 
 
 function timeAgo(dateString: string) {
@@ -57,7 +58,11 @@ export default function DashboardPage() {
   return (
     <>
       <NavBarPrivate />
-      <div className="pt-25 w-full min-h-screen p-15 bg-white dark:bg-gray-900">
+      <div className="pt-25 w-full min-h-screen p-25 bg-white dark:bg-gray-900">
+        <div className="flex flex-col mb-6">
+          <h1 className="text-3xl font-bold">Public report feed</h1>
+          <p className="text-sm text-gray-500">View and track real-time reports from the community</p>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {isLoading ? (
             Array.from({ length: 8 }).map((_, i) => (
