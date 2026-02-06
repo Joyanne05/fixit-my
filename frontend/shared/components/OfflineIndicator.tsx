@@ -3,10 +3,11 @@ import { useEffect, useState } from 'react';
 import { WifiOff } from 'lucide-react';
 
 export default function OfflineIndicator() {
-    const [isOffline, setIsOffline] = useState(false);
+    // Start with null to avoid hydration mismatch (server doesn't have navigator)
+    const [isOffline, setIsOffline] = useState<boolean | null>(null);
 
     useEffect(() => {
-        // Initial check
+        // Only check after mount (client-side only)
         setIsOffline(!navigator.onLine);
 
         const handleOnline = () => setIsOffline(false);
@@ -21,7 +22,8 @@ export default function OfflineIndicator() {
         };
     }, []);
 
-    if (!isOffline) return null;
+    // Don't render anything until we've checked, or if online
+    if (isOffline === null || !isOffline) return null;
 
     return (
         <div className="fixed bottom-4 left-4 right-4 z-50 animate-in slide-in-from-bottom-5">
