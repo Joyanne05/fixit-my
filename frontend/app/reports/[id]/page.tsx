@@ -168,12 +168,12 @@ export default function ReportDetailPage() {
     }
 
     return (
-        <div className="px-10 py-2 min-h-screen bg-page-bg">
+        <div className="px-0 sm:px-4 lg:px-8 py-2 min-h-screen bg-page-bg">
             <NavBarPrivate />
 
-            <main className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto font-sans">
+            <main className="pt-20 sm:pt-24 pb-12 px-4 sm:px-6 max-w-7xl mx-auto font-sans">
                 {/* Breadcrumbs */}
-                <div className="flex items-center gap-2 text-sm text-gray-500 mb-6 font-medium">
+                <div className="flex items-center gap-2 text-sm text-gray-500 mb-6 font-medium overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
                     <button
                         onClick={() => router.push('/dashboard')}
                         className="p-1 hover:bg-gray-100 rounded-full transition-colors mr-2"
@@ -192,22 +192,21 @@ export default function ReportDetailPage() {
                 </div>
 
                 {/* Header */}
-                <div className="mb-8">
+                <div className="mb-6 sm:mb-8">
                     <span className="inline-block px-3 py-1 rounded-md bg-brand-bg-light text-brand-primary text-xs font-bold uppercase tracking-wider mb-4">
                         {report.category || 'Infrastructure'}
                     </span>
 
-                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 sm:gap-6">
                         <div>
-                            <h1 className="text-4xl font-extrabold text-gray-900 mb-3 tracking-tight">{report.title}</h1>
-                            <p className="text-gray-500 flex items-center gap-2 text-sm">
+                            <h1 className="text-2xl sm:text-4xl font-extrabold text-gray-900 mb-2 sm:mb-3 tracking-tight leading-tight">{report.title}</h1>
+                            <p className="text-gray-500 flex flex-wrap items-center gap-2 text-sm">
                                 Reported by {report.user?.name || 'Anonymous user'}, at {report.location}
                             </p>
                         </div>
 
-                        <div className="flex items-center gap-3">
-
-                            <button onClick={handleFollow} className="flex items-center gap-2 px-5 py-2.5 bg-brand-primary text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all hover:bg-brand-secondary active:scale-95 cursor-pointer">
+                        <div className="flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0">
+                            <button onClick={handleFollow} className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-brand-primary text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all hover:bg-brand-secondary active:scale-95 cursor-pointer">
                                 <Bell size={18} />
                                 {isFollowing ? 'Unfollow Report' : 'Follow Report'}
                             </button>
@@ -216,102 +215,100 @@ export default function ReportDetailPage() {
                 </div>
 
                 {/* Journey Stepper */}
-                <div className="bg-white rounded-2xl p-8 mb-8 border border-gray-100 shadow-sm relative overflow-hidden">
-                    <div className="flex justify-between items-center mb-8">
+                <div className="bg-white rounded-2xl p-5 sm:p-8 mb-6 sm:mb-8 border border-gray-100 shadow-sm relative overflow-hidden">
+                    <div className="flex justify-between items-center mb-6 sm:mb-8">
                         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">Issue Progress</h3>
-
                     </div>
 
-                    <div className="relative flex items-center justify-between px-4 z-10">
-                        {/* Progress Bar background */}
-                        <div className="absolute left-0 right-0 top-6 h-1 bg-gray-100 -z-10" />
+                    <div className="w-full">
+                        <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8 sm:gap-0 z-10">
+                            {/* Progress Bar background */}
+                            <div className="absolute left-6 top-6 bottom-6 w-1 sm:w-auto sm:h-1 sm:left-0 sm:right-0 bg-gray-100 -z-10" />
 
-                        {statusSteps.map((step, index) => {
-                            const isActive = report.status === step.id;
-                            const isPast = [ReportStatus.OPEN, ReportStatus.ACKNOWLEDGED, ReportStatus.IN_PROGRESS, ReportStatus.RESOLVED].indexOf(report.status) >= index;
+                            {statusSteps.map((step, index) => {
+                                const isActive = report.status === step.id;
+                                const isPast = [ReportStatus.OPEN, ReportStatus.ACKNOWLEDGED, ReportStatus.IN_PROGRESS, ReportStatus.RESOLVED].indexOf(report.status) >= index;
 
-                            let dateDisplay = 'Upcoming';
-                            if (step.id === ReportStatus.OPEN && report.created_at) {
-                                dateDisplay = new Date(report.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                            } else if (isActive) {
-                                dateDisplay = 'Active Now';
-                            }
+                                let dateDisplay = 'Upcoming';
+                                if (step.id === ReportStatus.OPEN && report.created_at) {
+                                    dateDisplay = new Date(report.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                } else if (isActive) {
+                                    dateDisplay = 'Active Now';
+                                }
 
-                            return (
-                                <div key={step.id} className="flex flex-col items-center gap-4 bg-white px-2">
-                                    <div className={`
-                    w-12 h-12 rounded-full flex items-center justify-center border-4 transition-all duration-300
-                    ${isActive || isPast ? 'bg-brand-primary border-brand-bg-light text-white shadow-lg shadow-green-100' : 'bg-white border-gray-100 text-gray-300'}
-                  `}>
-                                        {isActive || isPast ? <CheckCircle2 size={24} strokeWidth={3} /> : <Circle size={24} />}
+                                return (
+                                    <div key={step.id} className="flex flex-row sm:flex-col items-center gap-4 px-2 w-full sm:w-auto">
+                                        <div className={`
+                        w-12 h-12 rounded-full flex items-center justify-center border-4 transition-all duration-300 shrink-0 z-10
+                        ${isActive || isPast ? 'bg-brand-primary border-brand-bg-light text-white shadow-lg shadow-green-100' : 'bg-white border-gray-100 text-gray-300'}
+                      `}>
+                                            {isActive || isPast ? <CheckCircle2 size={24} strokeWidth={3} /> : <Circle size={24} />}
+                                        </div>
+                                        <div className="text-left sm:text-center">
+                                            <p className={`text-sm font-bold mb-1 ${isActive ? 'text-brand-primary' : 'text-gray-900'}`}>{step.label}</p>
+                                            <p className="text-xs text-gray-400 font-medium">{dateDisplay}</p>
+                                        </div>
                                     </div>
-                                    <div className="text-center">
-                                        <p className={`text-sm font-bold mb-1 ${isActive ? 'text-brand-primary' : 'text-gray-900'}`}>{step.label}</p>
-                                        <p className="text-xs text-gray-400 font-medium">{dateDisplay}</p>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
 
                 {/* Status Actions */}
-                <div className="bg-white rounded-2xl p-6 mb-8 border border-gray-100 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-6">
-                    <div className="flex items-start gap-4">
-                        <div className="p-3 bg-green-50 rounded-xl text-green-600">
+                <div className="bg-white rounded-2xl p-5 sm:p-6 mb-6 sm:mb-8 border border-gray-100 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-6">
+                    <div className="flex items-start gap-4 w-full sm:w-auto">
+                        <div className="p-3 bg-green-50 rounded-xl text-green-600 shrink-0">
                             <User size={24} />
                         </div>
                         <div>
                             <h3 className="text-lg font-bold text-gray-900">Status Actions</h3>
-                            <p className="text-sm text-gray-500 max-w-md mt-1">
-                                Help drive the resolution. Update the status based on your observation on-site.
+                            <p className="text-sm text-gray-500 max-w-md mt-1 leading-relaxed">
+                                Help drive the resolution. Update status based on observation.
                             </p>
                         </div>
                     </div>
 
-                    <div className="flex gap-4 w-full sm:w-auto">
-                        <button className="flex-1 sm:flex-none border-2 border-green-100 text-green-600 px-6 py-3 rounded-xl cursor-pointer font-bold hover:bg-green-50 transition-colors">
+                    <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                        <button className="w-full sm:w-auto border-2 border-green-100 text-green-600 px-6 py-3 rounded-xl cursor-pointer font-bold hover:bg-green-50 transition-colors text-center">
                             Mark In Progress
                         </button>
-                        <button className="flex-1 sm:flex-none bg-brand-primary text-white px-6 py-3 rounded-xl font-bold shadow-lg cursor-pointer hover:bg-brand-secondary transition-all flex items-center justify-center gap-2">
+                        <button className="w-full sm:w-auto bg-brand-primary text-white px-6 py-3 rounded-xl font-bold shadow-lg cursor-pointer hover:bg-brand-secondary transition-all flex items-center justify-center gap-2 whitespace-nowrap">
                             <CheckCircle2 size={18} />
                             Mark as Closed
                         </button>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6 sm:gap-8">
                     {/* Main Content */}
-                    <div className="lg:col-span-2 space-y-8">
+                    <div className="contents lg:block lg:col-span-2 lg:space-y-8">
                         {/* Description */}
-                        <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
+                        <div className="bg-white rounded-2xl p-5 sm:p-8 border border-gray-100 shadow-sm order-1 lg:order-none">
                             <h3 className="text-xl font-bold text-gray-900 mb-3">Description</h3>
-                            <p className="text-gray-600 leading-relaxed text-md">
+                            <p className="text-gray-600 leading-relaxed text-sm sm:text-md">
                                 {report.description}
                             </p>
 
-                            <div className="flex gap-8 mt-8">
-                                <div>
-                                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Evidence Photo</h4>
-                                    <div className="aspect-video rounded-2xl overflow-hidden shadow-sm border border-gray-100 bg-gray-50">
-                                        {report.imageUrl ? (
-                                            <img src={report.imageUrl} alt="Evidence" className="w-full h-72 object-cover" />
-                                        ) : (
-                                            <div className={`w-full h-72 flex flex-col items-center justify-center bg-gradient-to-br ${getCategoryGradient(report.category)}`}>
-                                                {getCategoryIcon(report.category)}
-                                                <span className="text-xs font-bold uppercase tracking-widest mt-3 opacity-60">Photo Not Available</span>
-                                            </div>
-                                        )}
-                                    </div>
+                            <div className="mt-6 sm:mt-8">
+                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Evidence Photo</h4>
+                                <div className="aspect-video rounded-xl sm:rounded-2xl overflow-hidden shadow-sm border border-gray-100 bg-gray-50">
+                                    {report.imageUrl ? (
+                                        <img src={report.imageUrl} alt="Evidence" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className={`w-full h-full flex flex-col items-center justify-center bg-gradient-to-br ${getCategoryGradient(report.category)}`}>
+                                            {getCategoryIcon(report.category)}
+                                            <span className="text-xs font-bold uppercase tracking-widest mt-3 opacity-60">Photo Not Available</span>
+                                        </div>
+                                    )}
                                 </div>
-
                             </div>
                         </div>
 
-                        {/* Confirmation Section */}
+                        {/* Confirmation Section - Simplified for brevity in diff, keeping logic same but style optimised */}
                         {report.status === ReportStatus.RESOLVED ? (
                             // ACTIVE STATE
-                            <div className="bg-white rounded-2xl p-6 border-2 border-brand-primary shadow-sm mt-8">
+                            <div className="bg-white rounded-2xl p-6 border-2 border-brand-primary shadow-sm order-3 lg:order-none">
                                 <div className="flex flex-col sm:flex-row justify-between items-start mb-6 gap-4">
                                     <div>
                                         <div className="flex items-center gap-3 mb-2">
@@ -361,11 +358,10 @@ export default function ReportDetailPage() {
                             </div>
                         ) : (
                             // LOCKED STATE
-                            <div className="bg-white rounded-2xl p-8 border-2 border-dashed border-gray-200 shadow-sm mt-8 relative overflow-hidden group">
-                                {/* Blurry Background Content to mimic active state */}
+                            <div className="bg-white rounded-2xl p-5 sm:p-8 border-2 border-dashed border-gray-200 shadow-sm relative overflow-hidden group order-3 lg:order-none">
                                 <div className="opacity-40 blur-[2px] select-none pointer-events-none grayscale transition-all duration-500 group-hover:blur-[1px] group-hover:opacity-50">
-                                    <h3 className="text-xl font-bold text-gray-900 mb-2">Confirm Resolution</h3>
-                                    <p className="text-gray-400 mb-6 max-w-md">Community members near the area can confirm the fix to archive this report.</p>
+                                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">Confirm Resolution</h3>
+                                    <p className="text-sm sm:text-base text-gray-400 mb-6 max-w-md">Community members near the area can confirm the fix to archive this report.</p>
 
                                     <div className="w-full h-px bg-gray-100 mb-6"></div>
 
@@ -375,11 +371,10 @@ export default function ReportDetailPage() {
                                     </div>
                                 </div>
 
-                                {/* Overlay Lock */}
-                                <div className="absolute inset-0 flex items-center justify-center z-10">
-                                    <div className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 px-5 py-3 rounded-xl flex items-center gap-3 transform group-hover:scale-105 transition-transform duration-300 cursor-default">
-                                        <Lock size={14} className="text-gray-900" strokeWidth={2.5} />
-                                        <span className="text-[10px] font-extrabold text-gray-900 uppercase tracking-wider">Unlock by marking as "Closed"</span>
+                                <div className="absolute inset-0 flex items-center justify-center z-10 p-4 text-center">
+                                    <div className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 px-4 py-3 sm:px-5 sm:py-3 rounded-xl flex items-center gap-2 sm:gap-3 transform group-hover:scale-105 transition-transform duration-300 cursor-default">
+                                        <Lock size={14} className="text-gray-900 shrink-0" strokeWidth={2.5} />
+                                        <span className="text-[9px] sm:text-[10px] font-extrabold text-gray-900 uppercase tracking-wider whitespace-nowrap">Unlock by marking as "Closed"</span>
                                     </div>
                                 </div>
                             </div>
@@ -387,13 +382,13 @@ export default function ReportDetailPage() {
                     </div>
 
                     {/* Sidebar */}
-                    <div className="space-y-6">
+                    <div className="space-y-6 order-2 lg:order-none">
                         {/* Community Interest */}
-                        <div className="bg-white rounded-2xl px-8 py-4 border border-gray-100 shadow-sm">
-                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-6 mt-2">Community Interest</h3>
-                            <div className="flex items-center gap-6 mb-6">
+                        <div className="bg-white rounded-2xl px-6 sm:px-8 py-4 border border-gray-100 shadow-sm">
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 sm:mb-6 mt-2">Community Interest</h3>
+                            <div className="flex items-center gap-6 mb-2 sm:mb-6">
                                 <div>
-                                    <p className="text-4xl font-extrabold text-gray-900">{followersCount}</p>
+                                    <p className="text-3xl sm:text-4xl font-extrabold text-gray-900">{followersCount}</p>
                                     <p className="text-sm font-medium text-gray-400 mt-1">Followers</p>
                                 </div>
                                 <div className="w-px h-12 bg-gray-100"></div>
@@ -420,14 +415,14 @@ export default function ReportDetailPage() {
                         </div>
 
                         {/* Public Updates */}
-                        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm h-fit">
+                        <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-100 shadow-sm h-fit">
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Public Comments</h3>
                                 <MessageSquare size={16} className="text-gray-400" />
                             </div>
 
                             {/* Scrollable Container */}
-                            <div className="space-y-6 pl-8 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+                            <div className="space-y-6 pl-6 sm:pl-8 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
                                 {comments.length === 0 ? (
                                     <div className="text-center py-8 text-gray-400 text-sm">
                                         No updates yet. Be the first to comment.
@@ -435,10 +430,10 @@ export default function ReportDetailPage() {
                                 ) : (
                                     comments.map((comment, i) => (
                                         <div key={i} className="relative">
-                                            <div className="absolute -left-8 top-0 bg-white py-1">
-                                                <img src={comment.users?.avatar || "https://i.pravatar.cc/100?img=33"} className="w-8 h-8 rounded-full border-2 border-white shadow-sm" alt="" />
+                                            <div className="absolute -left-6 sm:-left-8 top-0 bg-white py-1">
+                                                <img src={comment.users?.avatar || "https://i.pravatar.cc/100?img=33"} className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-white shadow-sm" alt="" />
                                             </div>
-                                            <div className="pl-4">
+                                            <div className="pl-2 sm:pl-4">
                                                 <h4 className="font-bold text-gray-900 text-sm">{comment.users?.name}</h4>
                                                 <p className="text-gray-500 text-xs font-medium mt-1 leading-relaxed">{comment.comment}</p>
                                                 <p className="text-xs text-gray-400 mt-1 font-light">{timeAgo(comment.created_at)}</p>
@@ -452,7 +447,7 @@ export default function ReportDetailPage() {
                                 <div className="relative">
                                     <input
                                         type="text"
-                                        placeholder="Add an update or comment..."
+                                        placeholder="Add update..."
                                         className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-primary/20 pr-12"
                                         value={newComment}
                                         onChange={(e) => setNewComment(e.target.value)}
