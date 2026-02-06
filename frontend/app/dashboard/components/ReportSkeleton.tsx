@@ -2,7 +2,7 @@ import React from 'react';
 
 const ReportSkeleton = () => {
     return (
-        <div className="w-72 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col h-96 animate-pulse">
+        <div className="w-full bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col h-96 animate-pulse">
             {/* Image placeholder */}
             <div className="h-48 bg-gray-200" />
 

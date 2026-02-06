@@ -8,8 +8,16 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-poppins), var(--font-inter), ui-sans-serif, system-ui;
+  --font-sans: var(--font-outfit), var(--font-inter), ui-sans-serif, system-ui;
   --font-body: var(--font-inter), ui-sans-serif, system-ui;
+  --font-outfit: var(--font-outfit), sans-serif;
+  --font-playfair: var(--font-playfair), serif;
+
+  /* Brand Colors */
+  --color-brand-primary: #30a59c;
+  --color-brand-secondary: #26857d; /* Darker shade for hover */
+  --color-brand-bg-light: #f0fdfa; /* Light teal background */
+  --color-page-bg: #f8f9fb;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,7 +30,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-poppins), var(--font-inter), sans-serif;
+  font-family: var(--font-outfit), var(--font-inter), sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

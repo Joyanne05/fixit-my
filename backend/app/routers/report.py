@@ -2,10 +2,12 @@ from fastapi import APIRouter, Form, File, UploadFile, Depends, HTTPException
 from uuid import uuid4
 from app.services.supabase_client import supabase
 from app.dependencies.auth import get_current_user
+from app.schemas.report_schema import Report, ReportListResponse, ReportDetailResponse, ReportFollowRequest, ReportCommentRequest
 
 router = APIRouter(
     prefix="/report",
 )
+
 
 # Create new report
 @router.post("/create")
@@ -16,7 +18,7 @@ async def create_report(
     location: str = Form(...),
     photo: UploadFile | None = File(None),
     user=Depends(get_current_user),
-):
+) -> Report:
     photo_url = None
 
     # Upload photo if provided
@@ -70,19 +72,18 @@ async def create_report(
         {"report_id": report["report_id"], "user_id": user.id}
     ).execute()
 
+    return report
+
 
 # Get all reports
-@router.get("/list")
-async def list_reports(
-    user=Depends(get_current_user)
-):
+@router.get("/list", response_model=ReportListResponse)
+async def list_reports(user=Depends(get_current_user)):
     user_id = user.id if user else None
 
     # Logged-in user
     if user_id:
         result = (
-            supabase
-            .table("reports")
+            supabase.table("reports")
             .select(
                 """
                 report_id,
@@ -108,8 +109,7 @@ async def list_reports(
     # Not logged in (no is_following info)
     else:
         result = (
-            supabase
-            .table("reports")
+            supabase.table("reports")
             .select(
                 """
                 report_id,
@@ -133,51 +133,46 @@ async def list_reports(
     clean_reports = []
 
     for r in result.data:
-        clean_reports.append({
-            "report_id": r["report_id"],
-            "title": r["title"],
-            "category": r["category"],
-            "description": r["description"],
-            "status": r["status"],
-            "created_by": r["created_by"],
-            "closed_by": r["closed_by"],
-            "location": r["location"],
-            "photo_url": r["photo_url"],
-            "created_at": r["created_at"],
-            "updated_at": r["updated_at"],
-            
-
-            "is_following": (
-                len(r.get("user_follow", [])) > 0
-                if user_id else False
-            ),
-            "followers_count": (
-                r["followers"][0]["count"]
-                if r.get("followers") else 0
-            )
-        })
+        clean_reports.append(
+            {
+                "report_id": r["report_id"],
+                "title": r["title"],
+                "category": r["category"],
+                "description": r["description"],
+                "status": r["status"],
+                "created_by": r["created_by"],
+                "closed_by": r["closed_by"],
+                "location": r["location"],
+                "photo_url": r["photo_url"],
+                "created_at": r["created_at"],
+                "updated_at": r["updated_at"],
+                "is_following": (
+                    len(r.get("user_follow", [])) > 0 if user_id else False
+                ),
+                "followers_count": (
+                    r["followers"][0]["count"] if r.get("followers") else 0
+                ),
+            }
+        )
 
     return {"reports": clean_reports}
 
 
-
 # Get report by ID (include creator info, comments, followers)
-@router.get("/{report_id}")
-async def get_report(report_id: int):
+@router.get("/{report_id}", response_model=ReportDetailResponse)
+async def get_report(report_id: int, user=Depends(get_current_user)):
+    user_id = user.id if user else None
+
     report_res = (
         supabase.table("reports")
         .select(
             """
-        *,
-        users:created_by (
-            name,
-            avatar
-        ), 
-        report_followers(
-            
-        )
-        
-        """
+            *,
+            users:created_by (
+                name,
+                avatar
+            )
+            """
         )
         .eq("report_id", report_id)
         .single()
@@ -186,23 +181,102 @@ async def get_report(report_id: int):
 
     if not report_res.data:
         raise HTTPException(status_code=404, detail="Report not found")
+
     report = report_res.data
 
-    # Fetch followers
+    # Fetch followers (for follower list UI)
     followers_res = (
         supabase.table("report_followers")
         .select(
             """
-        *,
-        users:user_id (
-            name,
-            avatar
-        )
-        """
+            users:user_id (
+                name,
+                avatar
+            )
+            """
         )
         .eq("report_id", report_id)
         .execute()
     )
+
     followers = followers_res.data if followers_res.data else []
 
-    return {"report": report, "followers": followers}
+    # Check is_following (only if logged in)
+    is_following = False
+
+    if user_id:
+        follow_res = (
+            supabase.table("report_followers")
+            .select("user_id")
+            .eq("report_id", report_id)
+            .eq("user_id", user_id)
+            .limit(1)
+            .execute()
+        )
+
+        is_following = len(follow_res.data) > 0
+
+    return {"report": report, "followers": followers, "is_following": is_following}
+
+
+# Follow report
+@router.post("/follow")
+async def follow_report(req: ReportFollowRequest, user=Depends(get_current_user)):
+    try:
+        supabase.table("report_followers").insert(
+            {"report_id": req.report_id, "user_id": user.id}
+        ).execute()
+    except Exception as e:
+        print(f"Follow error: {str(e)}")
+
+    return {"message": "Report followed successfully"}
+
+
+# Unfollow report
+@router.post("/unfollow")
+async def unfollow_report(req: ReportFollowRequest, user=Depends(get_current_user)):
+    supabase.table("report_followers").delete().eq("report_id", req.report_id).eq(
+        "user_id", user.id
+    ).execute()
+
+    return {"message": "Report unfollowed successfully"}
+
+@router.get("/comments/{report_id}")
+async def get_comments(report_id: int):
+    comments_res = (
+        supabase.table("comments")
+        .select(
+            """
+            comment,
+            created_at,
+            users:user_id (
+                name,
+                avatar
+            )
+            """
+        )
+        .eq("report_id", report_id)
+        .order("created_at", desc=True)
+        .execute()
+    )
+
+    comments = comments_res.data if comments_res.data else []
+    return {"comments": comments}
+
+# Add comments on report post 
+@router.post("/comment/{report_id}")
+async def add_comment(req: ReportCommentRequest, user=Depends(get_current_user)):
+    try:
+        supabase.table("comments").insert(
+            {"report_id": req.report_id, "user_id": user.id, "comment": req.comment}
+        ).execute()
+
+        # Update status to acknowledged if currently open
+        report_res = supabase.table("reports").select("status").eq("report_id", req.report_id).single().execute()
+        if report_res.data and report_res.data.get("status") == "open":
+            supabase.table("reports").update({"status": "acknowledged"}).eq("report_id", req.report_id).execute()
+
+    except Exception as e:
+        print(f"Comment error: {str(e)}")
+
+    return {"message": "Comment added successfully"}
