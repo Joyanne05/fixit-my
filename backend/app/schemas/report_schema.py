@@ -45,3 +45,7 @@ class ReportListResponse(BaseModel):
 
 class ReportFollowRequest(BaseModel):
     report_id: int
+
+class ReportCommentRequest(BaseModel):
+    report_id: int
+    comment: str

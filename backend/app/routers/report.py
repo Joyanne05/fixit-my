@@ -2,7 +2,7 @@ from fastapi import APIRouter, Form, File, UploadFile, Depends, HTTPException
 from uuid import uuid4
 from app.services.supabase_client import supabase
 from app.dependencies.auth import get_current_user
-from app.schemas.report_schema import Report, ReportListResponse, ReportDetailResponse, ReportFollowRequest
+from app.schemas.report_schema import Report, ReportListResponse, ReportDetailResponse, ReportFollowRequest, ReportCommentRequest
 
 router = APIRouter(
     prefix="/report",
@@ -240,3 +240,43 @@ async def unfollow_report(req: ReportFollowRequest, user=Depends(get_current_use
     ).execute()
 
     return {"message": "Report unfollowed successfully"}
+
+@router.get("/comments/{report_id}")
+async def get_comments(report_id: int):
+    comments_res = (
+        supabase.table("comments")
+        .select(
+            """
+            comment,
+            created_at,
+            users:user_id (
+                name,
+                avatar
+            )
+            """
+        )
+        .eq("report_id", report_id)
+        .order("created_at", desc=True)
+        .execute()
+    )
+
+    comments = comments_res.data if comments_res.data else []
+    return {"comments": comments}
+
+# Add comments on report post 
+@router.post("/comment/{report_id}")
+async def add_comment(req: ReportCommentRequest, user=Depends(get_current_user)):
+    try:
+        supabase.table("comments").insert(
+            {"report_id": req.report_id, "user_id": user.id, "comment": req.comment}
+        ).execute()
+
+        # Update status to acknowledged if currently open
+        report_res = supabase.table("reports").select("status").eq("report_id", req.report_id).single().execute()
+        if report_res.data and report_res.data.get("status") == "open":
+            supabase.table("reports").update({"status": "acknowledged"}).eq("report_id", req.report_id).execute()
+
+    except Exception as e:
+        print(f"Comment error: {str(e)}")
+
+    return {"message": "Comment added successfully"}
