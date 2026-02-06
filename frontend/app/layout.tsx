@@ -25,6 +25,12 @@ export const metadata: Metadata = {
   manifest: '/manifest.json'
 };
 
+export const viewport = {
+  themeColor: "#0f172a",
+};
+
+import InstallPrompt from "@/shared/components/InstallPrompt";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -36,6 +42,7 @@ export default function RootLayout({
         className={`${inter.variable} ${outfit.variable} ${playfair.variable} antialiased`}
       >
         {children}
+        <InstallPrompt />
       </body>
     </html>
   );
