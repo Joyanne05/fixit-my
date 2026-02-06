@@ -5,7 +5,7 @@ const pwaConfig = withPWA({
   dest: 'public',              // service worker goes here
   register: true,              
   skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development', // disabled in dev
+  disable: false, // process.env.NODE_ENV === 'development', // disabled in dev
 })
 
 const nextConfig: NextConfig = {

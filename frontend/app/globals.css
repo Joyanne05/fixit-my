@@ -20,12 +20,7 @@
   --color-page-bg: #f8f9fb;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* Force light mode - ignore device preference */
 
 body {
   background: var(--background);
