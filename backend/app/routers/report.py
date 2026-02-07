@@ -235,7 +235,7 @@ async def follow_report(req: ReportFollowRequest, user=Depends(get_current_user)
         print(f"Follow error: {str(e)}")
 
     # Record action
-    action.record_user_action(user.id, "FOLLOW_REPORT", req.report_id)
+    record_user_action(user.id, "FOLLOW_REPORT", req.report_id)
 
     return {"message": "Report followed successfully"}
 
