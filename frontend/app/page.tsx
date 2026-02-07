@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Navbar from "@/shared/components/NavBarPublic";
 import { ArrowRight } from 'lucide-react';
+import Link from "next/link";
 
 export default function Home() {
 
@@ -34,10 +34,10 @@ export default function Home() {
 
         {/* CTAs */}
         <div className="flex sm:flex-row items-center justify-center gap-4">
-          <button className="flex items-center justify-center px-8 py-3 bg-[#124076] rounded-full text-white hover:bg-brand-primary transition-all shadow-xl hover:shadow-brand-primary/20 hover:-translate-y-1 w-full sm:w-auto group cursor-pointer text-md">
+          <Link href="/dashboard" className="flex items-center justify-center px-8 py-3 bg-[#124076] rounded-full text-white hover:bg-brand-primary transition-all shadow-xl hover:shadow-brand-primary/20 hover:-translate-y-1 w-full sm:w-auto group cursor-pointer text-md">
             Browse Reports
             <ArrowRight size={22} className="ml-2 group-hover:translate-x-1 transition-transform" />
-          </button>
+          </Link>
         </div>
 
       </div>

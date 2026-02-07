@@ -1,11 +1,13 @@
 "use client";
 import NavBarPrivate from "@/shared/components/NavBarPrivate";
-import { api } from "@/lib/apiClient";
+import NavBarPublic from "@/shared/components/NavBarPublic";
 import { useEffect, useState } from "react";
 import ReportCard from "./components/ReportCard";
 import ReportSkeleton from "./components/ReportSkeleton";
 import { Report, ReportStatus } from "@/types/report";
 import { supabase } from "@/lib/supabaseClient";
+import SignInPromptModal from "@/app/components/SignInPromptModal";
+import { Search } from "lucide-react";
 
 function timeAgo(dateString: string) {
   const date = new Date(dateString);
@@ -24,14 +26,29 @@ function timeAgo(dateString: string) {
 export default function DashboardPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [showSignInModal, setShowSignInModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   useEffect(() => {
+    // Check authentication status
+    async function checkAuth() {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+      setAuthChecked(true);
+    }
+    checkAuth();
 
+    // Fetch reports (works for both authenticated and anonymous users)
     const fetchData = async () => {
       try {
-        const response = await api.get('/report/list');
-        // Map backend fields to frontend Report type
-        const mappedReports: Report[] = response.data.reports.map((r: any) => ({
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/report/list`);
+        if (!res.ok) throw new Error('Failed to fetch');
+        const data = await res.json();
+
+        const mappedReports: Report[] = data.reports.map((r: any) => ({
           id: r.report_id?.toString() || r.id?.toString(),
           title: r.title,
           description: r.description,
@@ -43,43 +60,114 @@ export default function DashboardPage() {
           timestamp: r.created_at ? timeAgo(r.created_at) : '',
           location: r.location || '',
           category: r.category || '',
-          is_following: r.is_following,
-          followers_count: r.followers_count,
+          is_following: r.is_following || false,
+          followers_count: r.followers_count || 0,
         }));
         setReports(mappedReports);
-        console.log("Fetched reports:", mappedReports);
       } catch (error) {
         console.error("Error fetching reports:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchData().finally(() => setIsLoading(false));
+    fetchData();
   }, []);
 
+  // Get unique categories from reports
+  const categories = ['all', ...new Set(reports.map((r) => r.category).filter(Boolean))];
+
+  // Filter reports based on search and category
+  const filteredReports = reports.filter((report) => {
+    const matchesSearch =
+      report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report.location.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || report.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <>
-      <NavBarPrivate />
+      {authChecked && (isAuthenticated ? <NavBarPrivate /> : <NavBarPublic />)}
       <div className="pt-20 sm:pt-24 w-full min-h-screen px-4 sm:px-8 lg:px-16 py-6 bg-white">
-        <div className="flex flex-col mb-6">
-          <h1 className="text-3xl font-bold">Public report feed</h1>
-          <p className="text-sm text-gray-500">View and track real-time reports from the community</p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
-          {isLoading ? (
-            Array.from({ length: 8 }).map((_, i) => (
-              <ReportSkeleton key={i} />
-            ))
-          ) : (
-            reports.map(report => (
-              <ReportCard key={report.id} report={report} />
-            ))
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="flex flex-col mb-6">
+            <h1 className="text-3xl font-bold text-[#124076]">Public Report Feed</h1>
+            <p className="text-sm text-gray-500">
+              View and track real-time reports from the community
+              {!isAuthenticated && authChecked && (
+                <span className="ml-2 text-brand-primary">• Sign in to interact with reports</span>
+              )}
+            </p>
+          </div>
+
+          {/* Search and Filter */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-8">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search reports by title, description, or location..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-all"
+              />
+            </div>
+
+            {/* Category Filter */}
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-all bg-white capitalize cursor-pointer min-w-[180px]"
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat} className="capitalize">
+                  {cat === 'all' ? 'All Categories' : cat}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Results Count */}
+          {!isLoading && (
+            <p className="text-sm text-gray-500 mb-4">
+              Showing {filteredReports.length} {filteredReports.length === 1 ? 'report' : 'reports'}
+            </p>
           )}
+
+          {/* Reports Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {isLoading ? (
+              Array.from({ length: 8 }).map((_, i) => (
+                <ReportSkeleton key={i} />
+              ))
+            ) : filteredReports.length === 0 ? (
+              <div className="col-span-full text-center py-12 text-gray-500">
+                {searchTerm || selectedCategory !== 'all'
+                  ? 'No reports match your filters.'
+                  : 'No reports yet. Be the first to report an issue!'}
+              </div>
+            ) : (
+              filteredReports.map(report => (
+                <ReportCard
+                  key={report.id}
+                  report={report}
+                  isAuthenticated={isAuthenticated}
+                  onAuthRequired={() => setShowSignInModal(true)}
+                />
+              ))
+            )}
+          </div>
         </div>
       </div>
 
-
-
+      <SignInPromptModal
+        isOpen={showSignInModal}
+        onClose={() => setShowSignInModal(false)}
+      />
     </>
   );
 }

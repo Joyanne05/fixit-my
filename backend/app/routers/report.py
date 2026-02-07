@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Form, File, UploadFile, Depends, HTTPException
 from uuid import uuid4
 from app.services.supabase_client import supabase
-from app.dependencies.auth import get_current_user
+from app.dependencies.auth import get_current_user, get_optional_user
 from app.schemas.report_schema import Report, ReportListResponse, ReportDetailResponse, ReportFollowRequest, ReportCommentRequest
 
 router = APIRouter(
@@ -77,7 +77,7 @@ async def create_report(
 
 # Get all reports
 @router.get("/list", response_model=ReportListResponse)
-async def list_reports(user=Depends(get_current_user)):
+async def list_reports(user=Depends(get_optional_user)):
     user_id = user.id if user else None
 
     # Logged-in user

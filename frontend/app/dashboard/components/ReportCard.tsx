@@ -7,6 +7,8 @@ import { api } from '@/lib/apiClient';
 
 interface ReportCardProps {
   report: Report;
+  isAuthenticated?: boolean;
+  onAuthRequired?: () => void;
 }
 
 const statusColors: Record<ReportStatus, string> = {
@@ -36,13 +38,21 @@ const getCategoryGradient = (category: string) => {
   return 'from-gray-50 to-gray-100 text-gray-400';
 };
 
-const ReportCard: React.FC<ReportCardProps> = ({ report }) => {
+const ReportCard: React.FC<ReportCardProps> = ({ report, isAuthenticated = true, onAuthRequired }) => {
   const [isFollowing, setIsFollowing] = useState(report.is_following);
   const [followersCount, setFollowersCount] = useState(report.followers_count);
+  const router = useRouter();
 
   async function handleFollow(e: React.MouseEvent<HTMLButtonElement>) {
     e.stopPropagation();
     e.preventDefault();
+
+    // Check auth before allowing follow action
+    if (!isAuthenticated && onAuthRequired) {
+      onAuthRequired();
+      return;
+    }
+
     if (!isFollowing) {
       const res = api.post(`/report/follow`, { report_id: report.id });
       setIsFollowing(true);
@@ -56,10 +66,18 @@ const ReportCard: React.FC<ReportCardProps> = ({ report }) => {
     }
   }
 
-  const router = useRouter();
+  function handleCardClick() {
+    // Check auth before navigating to report detail
+    if (!isAuthenticated && onAuthRequired) {
+      onAuthRequired();
+      return;
+    }
+    router.push(`/reports/${report.id}`);
+  }
+
   return (
     <div
-      onClick={() => router.push(`/reports/${report.id}`)}
+      onClick={handleCardClick}
       className="cursor-pointer w-full bg-white rounded-xl sm:rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden flex flex-col"
     >
       {/* Image - responsive height */}
@@ -105,7 +123,7 @@ const ReportCard: React.FC<ReportCardProps> = ({ report }) => {
         </div>
 
         <button onClick={handleFollow} className="cursor-pointer text-xs sm:text-sm px-2 font-bold text-brand-primary hover:text-brand-secondary uppercase tracking-wide transition-colors">
-          {isFollowing ? 'Following' : 'Follow'}
+          {isAuthenticated && isFollowing ? 'Following' : 'Follow'}
         </button>
       </div>
     </div>
