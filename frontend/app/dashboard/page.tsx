@@ -33,22 +33,33 @@ export default function DashboardPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   useEffect(() => {
-    // Check authentication status
-    async function checkAuth() {
+    // Check authentication status first, then fetch reports with proper auth
+    async function init() {
       const { data } = await supabase.auth.getSession();
-      setIsAuthenticated(!!data.session);
+      const hasSession = !!data.session;
+      setIsAuthenticated(hasSession);
       setAuthChecked(true);
-    }
-    checkAuth();
+      console.log("Token", data.session?.access_token);
 
-    // Fetch reports (works for both authenticated and anonymous users)
-    const fetchData = async () => {
+      // Fetch reports with auth token if available
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/report/list`);
-        if (!res.ok) throw new Error('Failed to fetch');
-        const data = await res.json();
+        let response;
+        if (hasSession && data.session?.access_token) {
+          // Authenticated request - include token for is_following info
+          response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/report/list`, {
+            headers: {
+              'Authorization': `Bearer ${data.session.access_token}`
+            }
+          });
+        } else {
+          // Anonymous request
+          response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/report/list`);
+        }
 
-        const mappedReports: Report[] = data.reports.map((r: any) => ({
+        if (!response.ok) throw new Error('Failed to fetch');
+        const resData = await response.json();
+
+        const mappedReports: Report[] = resData.reports.map((r: any) => ({
           id: r.report_id?.toString() || r.id?.toString(),
           title: r.title,
           description: r.description,
@@ -69,10 +80,12 @@ export default function DashboardPage() {
       } finally {
         setIsLoading(false);
       }
-    };
+    }
 
-    fetchData();
+    init();
   }, []);
+
+  console.log("Reports:", reports);
 
   // Get unique categories from reports
   const categories = ['all', ...new Set(reports.map((r) => r.category).filter(Boolean))];

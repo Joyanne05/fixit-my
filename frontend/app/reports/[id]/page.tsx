@@ -167,6 +167,38 @@ export default function ReportDetailPage() {
         );
     }
 
+    const CommunityInterest = (
+        <div className="bg-white rounded-2xl px-6 sm:px-8 py-4 border border-gray-100 shadow-sm">
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 sm:mb-6 mt-2">Community Interest</h3>
+            <div className="flex items-center gap-6 mb-2 sm:mb-6">
+                <div>
+                    <p className="text-3xl sm:text-4xl font-extrabold text-gray-900">{followersCount}</p>
+                    <p className="text-sm font-medium text-gray-400 mt-1">Followers</p>
+                </div>
+                <div className="w-px h-12 bg-gray-100"></div>
+
+                <div className="flex -space-x-3 overflow-hidden p-2">
+                    {followers.slice(0, 5).map((follower, i) => (
+                        <div key={i} className="inline-block h-10 w-10 rounded-full ring-4 ring-white bg-gray-200">
+                            <img
+                                className="h-full w-full rounded-full object-cover"
+                                src={follower.users.avatar}
+                                alt={follower.users.name}
+                                title={follower.users.name}
+                                referrerPolicy="no-referrer"
+                            />
+                        </div>
+                    ))}
+                    {followers.length > 5 && (
+                        <div className="flex items-center justify-center h-10 w-10 rounded-full ring-4 ring-white bg-brand-bg-light text-brand-primary text-xs font-bold">
+                            +{followers.length - 5}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+
     return (
         <div className="px-0 sm:px-4 lg:px-8 py-2 min-h-screen bg-page-bg">
             <NavBarPrivate />
@@ -212,6 +244,11 @@ export default function ReportDetailPage() {
                             </button>
                         </div>
                     </div>
+                </div>
+
+                {/* Mobile Community Interest */}
+                <div className="mb-6 lg:hidden">
+                    {CommunityInterest}
                 </div>
 
                 {/* Journey Stepper */}
@@ -269,7 +306,7 @@ export default function ReportDetailPage() {
                         </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <div className="flex md:flex-col sm:flex-row gap-3 w-full sm:w-auto">
                         <button className="w-full sm:w-auto border-2 border-green-100 text-green-600 px-6 py-3 rounded-xl cursor-pointer font-bold hover:bg-green-50 transition-colors text-center">
                             Mark In Progress
                         </button>
@@ -383,35 +420,9 @@ export default function ReportDetailPage() {
 
                     {/* Sidebar */}
                     <div className="space-y-6 order-2 lg:order-none">
-                        {/* Community Interest */}
-                        <div className="bg-white rounded-2xl px-6 sm:px-8 py-4 border border-gray-100 shadow-sm">
-                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 sm:mb-6 mt-2">Community Interest</h3>
-                            <div className="flex items-center gap-6 mb-2 sm:mb-6">
-                                <div>
-                                    <p className="text-3xl sm:text-4xl font-extrabold text-gray-900">{followersCount}</p>
-                                    <p className="text-sm font-medium text-gray-400 mt-1">Followers</p>
-                                </div>
-                                <div className="w-px h-12 bg-gray-100"></div>
-
-                                <div className="flex -space-x-3 overflow-hidden p-2">
-                                    {followers.slice(0, 5).map((follower, i) => (
-                                        <div key={i} className="inline-block h-10 w-10 rounded-full ring-4 ring-white bg-gray-200">
-                                            <img
-                                                className="h-full w-full rounded-full object-cover"
-                                                src={follower.users.avatar}
-                                                alt={follower.users.name}
-                                                title={follower.users.name}
-                                                referrerPolicy="no-referrer"
-                                            />
-                                        </div>
-                                    ))}
-                                    {followers.length > 5 && (
-                                        <div className="flex items-center justify-center h-10 w-10 rounded-full ring-4 ring-white bg-brand-bg-light text-brand-primary text-xs font-bold">
-                                            +{followers.length - 5}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                        {/* Community Interest (Desktop) */}
+                        <div className="hidden lg:block">
+                            {CommunityInterest}
                         </div>
 
                         {/* Public Updates */}

@@ -13,6 +13,7 @@ const CreateReportForm = () => {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     title: '',
@@ -57,6 +58,9 @@ const CreateReportForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isSubmitting) return;
+
     // Validate required fields before submit
     if (!form.title || !form.category || !form.description || !form.location) {
       setErrorMsg("Please fill in all required fields.");
@@ -69,6 +73,8 @@ const CreateReportForm = () => {
     }
 
     setErrorMsg("");
+    setIsSubmitting(true);
+
     const formData = new FormData();
     formData.append('title', form.title);
     formData.append('category', form.category);
@@ -102,6 +108,9 @@ const CreateReportForm = () => {
     } catch (error) {
       console.error("Error submitting report:", error);
       // Do not redirect if error
+      setErrorMsg("An error occurred while submitting the report. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -250,10 +259,20 @@ const CreateReportForm = () => {
                 <button
                   type="submit"
                   onClick={handleSubmit}
-                  className="w-full sm:w-auto bg-brand-primary hover:bg-brand-secondary text-white px-8 py-3 rounded-lg font-semibold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2"
+                  disabled={isSubmitting}
+                  className={`w-full cursor-pointer sm:w-auto bg-brand-primary hover:bg-brand-secondary text-white px-8 py-3 rounded-lg font-semibold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
-                  <CheckCircle size={20} />
-                  Submit Report
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle size={20} />
+                      Submit Report
+                    </>
+                  )}
                 </button>
               </div>
 
