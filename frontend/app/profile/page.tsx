@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/apiClient";
 import {
     User, FileText, Settings, Trophy, Heart, CheckCircle,
-    PlusCircle, MessageSquare, ArrowRight
+    PlusCircle, MessageSquare, ArrowRight, LogOut
 } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
 
 interface UserData {
     user_id: string;
@@ -136,6 +137,18 @@ export default function ProfilePage() {
         fetchData();
     }, []);
 
+    const handleLogout = async () => {
+        try {
+            // Optional backend call
+            await api.post("/auth/logout");
+        } catch (error) {
+            console.error("Backend logout error (ignoring):", error);
+        } finally {
+            await supabase.auth.signOut();
+            router.push("/");
+        }
+    };
+
     // Calculate stats from actions
     const reportsCreated = actions.filter(a => a.action_name === "CREATE_REPORT").length;
     const resolutionsConfirmed = actions.filter(a => a.action_name === "CONFIRM_RESOLUTION").length;
@@ -209,16 +222,12 @@ export default function ProfilePage() {
                             </div>
                         </div>
 
-                        {/* Points & Edit */}
+                        {/* Points & Actions */}
                         <div className="flex flex-col sm:flex-row items-center gap-4">
                             <div className="text-center px-6 py-3 bg-gray-50 rounded-xl border border-gray-100">
                                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Points</p>
                                 <p className="text-3xl font-extrabold text-gray-900">{totalPoints.toLocaleString()}</p>
                             </div>
-                            {/* <button className="bg-brand-primary text-white px-5 py-2.5 rounded-xl font-bold shadow-sm hover:bg-brand-secondary transition-all flex items-center gap-2">
-                                <Settings size={16} />
-                                Edit Profile
-                            </button> */}
                         </div>
                     </div>
                 </div>
@@ -243,13 +252,14 @@ export default function ProfilePage() {
                                     <FileText size={18} />
                                     My Reports
                                 </button>
-                                {/* <button
-                                    onClick={() => setActiveTab("settings")}
-                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === "settings" ? "bg-brand-bg-light text-brand-primary" : "text-gray-600 hover:bg-gray-50"}`}
+                                <button
+                                    onClick={handleLogout}
+                                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-red-600 hover:bg-red-50 transition-colors"
                                 >
-                                    <Settings size={18} />
-                                    Settings
-                                </button> */}
+                                    <LogOut size={18} />
+                                    Log Out
+                                </button>
+
                             </nav>
                         </div>
 

@@ -29,6 +29,10 @@ async def sync_user(user = Depends(get_current_user)):
         supabase.table("users").insert(new_user).execute()
 
     return {"message": "User synchronized successfully"}
+
+@router.post("/logout")
+async def logout():
+    return {"message": "Logged out successfully"}
     
         
     
