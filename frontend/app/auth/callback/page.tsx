@@ -55,8 +55,8 @@ export default function AuthCallbackPage() {
         {!error ? (
           <>
             <Loader2 className="w-10 h-10 text-blue-600 animate-spin mx-auto" />
-            <h1 className="text-xl font-medium text-gray-900">Sigining you in...</h1>
-            <p className="text-gray-500">Preparing your IssueGuard dashboard.</p>
+            <h1 className="text-xl font-medium text-gray-900">Signing you in...</h1>
+            <p className="text-gray-500">Preparing your dashboard.</p>
           </>
         ) : (
           <div className="bg-red-50 p-4 rounded-lg border border-red-100">

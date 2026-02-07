@@ -31,6 +31,7 @@ export const viewport = {
 
 import InstallPrompt from "@/shared/components/InstallPrompt";
 import OfflineIndicator from "@/shared/components/OfflineIndicator";
+import Footer from "@/shared/components/Footer";
 
 export default function RootLayout({
   children,
@@ -40,9 +41,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${outfit.variable} ${playfair.variable} antialiased`}
+        className={`${inter.variable} ${outfit.variable} ${playfair.variable} antialiased min-h-screen flex flex-col`}
       >
-        {children}
+        <div className="flex-grow">
+          {children}
+        </div>
+        <Footer />
         <OfflineIndicator />
         <InstallPrompt />
       </body>
