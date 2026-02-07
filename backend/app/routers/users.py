@@ -48,3 +48,36 @@ async def get_user_actions(user = Depends(get_current_user)):
         })
 
     return {"actions": actions_with_points}
+
+@router.get("/my-reports")
+async def get_my_reports(user = Depends(get_current_user)):
+    try:
+        result = (
+            supabase.table("reports")
+            .select("*")
+            .eq("created_by", user.id)
+            .execute()
+        )
+    except Exception as e:
+        print(f"Error fetching user reports: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch user reports")
+    
+    return result.data
+
+@router.get("/badges")
+async def get_user_badges(user = Depends(get_current_user)):
+    try:
+        result = (
+            supabase.table("user_badges")
+            .select("""
+                *,
+                badge:badges(*)
+            """)
+            .eq("user_id", user.id)
+            .execute()
+        )
+    except Exception as e:
+        print(f"Error fetching user badges: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch user badges")
+    
+    return {"badges": result.data}

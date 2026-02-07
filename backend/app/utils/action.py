@@ -1,4 +1,5 @@
 from app.services.supabase_client import supabase
+from app.utils.badges import award_badges
 
 ACTION_POINTS = {
     "CREATE_REPORT": 10,
@@ -37,4 +38,7 @@ def record_user_action(user_id: str, action_name: str, report_id: str | None = N
 
     # Update
     supabase.table("users").update({"points": new_points}).eq("user_id", user_id).execute()
+
+    # Award badges
+    award_badges(user_id)
 
