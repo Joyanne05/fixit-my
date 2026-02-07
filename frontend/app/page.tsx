@@ -1,8 +1,40 @@
+"use client";
 import Navbar from "@/shared/components/NavBarPublic";
 import { ArrowRight } from 'lucide-react';
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function Home() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        router.push("/dashboard");
+      } else {
+        setIsLoading(false);
+      }
+    };
+    checkSession();
+  }, [router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-brand-primary/20 border-t-brand-primary rounded-full animate-spin"></div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <img src="/fixitmy_logo.jpg" alt="Logo" className="w-8 h-8 rounded-lg object-cover" />
+          </div>
+        </div>
+        <p className="mt-4 text-brand-primary font-bold animate-pulse">Initializing...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="relative pt-32 pb-20 lg:pt-32 lg:pb-32 overflow-hidden">

@@ -1,11 +1,23 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Megaphone, Menu, X } from 'lucide-react';
 import AuthModal from '@/app/auth/components/AuthModal';
+import { supabase } from '@/lib/supabaseClient';
+import { useRouter } from 'next/navigation';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+    };
+    checkSession();
+  }, []);
 
   return <>
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
@@ -23,7 +35,6 @@ const Navbar: React.FC = () => {
 
           {/* Actions */}
           <div className="flex items-center space-x-3 sm:space-x-6">
-            {/* <button className="text-sm font-semibold text-gray-700 hover:text-gray-900">Sign In</button> */}
             <button
               onClick={() => setIsSignInModalOpen(true)}
               className="cursor-pointer bg-brand-primary text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all shadow-sm hover:shadow-md active:scale-95"
