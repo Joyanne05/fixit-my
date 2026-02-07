@@ -3,6 +3,7 @@ from uuid import uuid4
 from app.services.supabase_client import supabase
 from app.dependencies.auth import get_current_user, get_optional_user
 from app.schemas.report_schema import Report, ReportListResponse, ReportDetailResponse, ReportFollowRequest, ReportCommentRequest
+from app.utils.action import record_user_action
 
 router = APIRouter(
     prefix="/report",
@@ -71,6 +72,10 @@ async def create_report(
     supabase.table("report_followers").insert(
         {"report_id": report["report_id"], "user_id": user.id}
     ).execute()
+
+    # Record action
+    record_user_action(user.id, "CREATE_REPORT", report["report_id"])
+    record_user_action(user.id, "FOLLOW_REPORT", report["report_id"])
 
     return report
 
@@ -229,6 +234,9 @@ async def follow_report(req: ReportFollowRequest, user=Depends(get_current_user)
     except Exception as e:
         print(f"Follow error: {str(e)}")
 
+    # Record action
+    action.record_user_action(user.id, "FOLLOW_REPORT", req.report_id)
+
     return {"message": "Report followed successfully"}
 
 
@@ -241,6 +249,7 @@ async def unfollow_report(req: ReportFollowRequest, user=Depends(get_current_use
 
     return {"message": "Report unfollowed successfully"}
 
+# Fetch comments
 @router.get("/comments/{report_id}")
 async def get_comments(report_id: int):
     comments_res = (
@@ -275,6 +284,9 @@ async def add_comment(req: ReportCommentRequest, user=Depends(get_current_user))
         report_res = supabase.table("reports").select("status").eq("report_id", req.report_id).single().execute()
         if report_res.data and report_res.data.get("status") == "open":
             supabase.table("reports").update({"status": "acknowledged"}).eq("report_id", req.report_id).execute()
+
+        # Record action
+        record_user_action(user.id, "COMMENT_REPORT", req.report_id)
 
     except Exception as e:
         print(f"Comment error: {str(e)}")

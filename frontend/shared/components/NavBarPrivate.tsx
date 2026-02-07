@@ -36,7 +36,10 @@ const Navbar: React.FC = () => {
                         >
                             + Report Issue
                         </button>
-                        <button className="cursor-pointer shadow-sm p-2 rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors border border-gray-100">
+                        <button
+                            onClick={() => router.push("/profile")}
+                            className="cursor-pointer shadow-sm p-2 rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors border border-gray-100"
+                        >
                             <CircleUser size={20} />
                         </button>
                     </div>
