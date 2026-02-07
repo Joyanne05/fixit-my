@@ -231,12 +231,11 @@ async def follow_report(req: ReportFollowRequest, user=Depends(get_current_user)
         supabase.table("report_followers").insert(
             {"report_id": req.report_id, "user_id": user.id}
         ).execute()
+        
+        # Record action
+        record_user_action(user.id, "FOLLOW_REPORT", req.report_id)
     except Exception as e:
         print(f"Follow error: {str(e)}")
-
-    # Record action
-    record_user_action(user.id, "FOLLOW_REPORT", req.report_id)
-
     return {"message": "Report followed successfully"}
 
 
@@ -246,7 +245,10 @@ async def unfollow_report(req: ReportFollowRequest, user=Depends(get_current_use
     supabase.table("report_followers").delete().eq("report_id", req.report_id).eq(
         "user_id", user.id
     ).execute()
-
+    
+    supabase.table("user_actions").delete().eq("report_id", req.report_id).eq(
+        "user_id", user.id
+    ).eq("action_name", "FOLLOW_REPORT").execute()
     return {"message": "Report unfollowed successfully"}
 
 # Fetch comments
