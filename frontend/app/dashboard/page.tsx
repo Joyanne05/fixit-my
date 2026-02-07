@@ -85,7 +85,7 @@ export default function DashboardPage() {
     init();
   }, []);
 
-  console.log("Reports:", reports);
+  // console.log("Reports:", reports);
 
   // Get unique categories from reports
   const categories = ['all', ...new Set(reports.map((r) => r.category).filter(Boolean))];
@@ -103,7 +103,7 @@ export default function DashboardPage() {
   return (
     <>
       {authChecked && (isAuthenticated ? <NavBarPrivate /> : <NavBarPublic />)}
-      <div className="pt-20 sm:pt-24 w-full min-h-screen px-4 sm:px-8 lg:px-16 py-6 pb-24 md:pb-6 bg-white">
+      <div className="pt-20 pb-8 sm:pt-24 w-full min-h-screen px-4 sm:px-8 lg:px-16 py-6 pb-24 md:pb-6 bg-white">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex flex-col mb-6">
@@ -152,7 +152,7 @@ export default function DashboardPage() {
           )}
 
           {/* Reports Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
             {isLoading ? (
               Array.from({ length: 8 }).map((_, i) => (
                 <ReportSkeleton key={i} />

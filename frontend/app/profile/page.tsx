@@ -107,7 +107,14 @@ export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState("profile");
 
     useEffect(() => {
-        const fetchData = async () => {
+        const checkSessionAndFetch = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (!session) {
+                router.push("/");
+                return;
+            }
+
             try {
                 const [userRes, actionsRes, reportsRes, badgesRes] = await Promise.all([
                     api.get<UserData>("/user/me"),
@@ -129,13 +136,14 @@ export default function ProfilePage() {
                 setTotalPoints(points);
             } catch (error) {
                 console.error("Error fetching profile data:", error);
+                // If fetching fails ensure we don't show broken state
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchData();
-    }, []);
+        checkSessionAndFetch();
+    }, [router]);
 
     const handleLogout = async () => {
         try {
@@ -192,7 +200,7 @@ export default function ProfilePage() {
                         {/* Avatar */}
                         <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 ring-4 ring-brand-bg-light shrink-0">
                             <img
-                                src={user?.avatar || "https://i.pravatar.cc/100"}
+                                src={user?.avatar || ""}
                                 alt={user?.name}
                                 className="w-full h-full object-cover"
                                 referrerPolicy="no-referrer"
@@ -202,10 +210,10 @@ export default function ProfilePage() {
                         {/* User Info */}
                         <div className="flex-1 text-center sm:text-left">
                             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
-                                {user?.name || "Anonymous"}
+                                {user?.name}
                             </h1>
                             <p className="text-gray-500 text-sm mb-3">
-                                Joined {user?.created_at ? formatJoinDate(user.created_at) : "Recently"} • Community Member
+                                Joined {user?.created_at ? formatJoinDate(user.created_at) : ""} • Community Member
                             </p>
 
                             {/* Level Badge */}
