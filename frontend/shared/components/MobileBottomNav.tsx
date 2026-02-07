@@ -14,8 +14,8 @@ export default function MobileBottomNav() {
     };
 
     return (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200 py-5 px-6 z-50 pb-safe">
-            <div className="flex justify-between items-center max-w-sm mx-auto">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200 py-6 px-6 z-50 pb-safe">
+            <div className="flex justify-center gap-18 items-center max-w-sm mx-auto">
                 <button
                     onClick={() => router.push('/dashboard')}
                     className={`flex flex-col items-center gap-1 transition-colors ${isActive('/dashboard') ? 'text-brand-primary' : 'text-gray-400 hover:text-gray-600'
