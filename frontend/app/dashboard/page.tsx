@@ -103,11 +103,11 @@ export default function DashboardPage() {
   return (
     <>
       {authChecked && (isAuthenticated ? <NavBarPrivate /> : <NavBarPublic />)}
-      <div className="pt-20 sm:pt-24 w-full min-h-screen px-4 sm:px-8 lg:px-16 py-6 bg-white">
+      <div className="pt-20 sm:pt-24 w-full min-h-screen px-4 sm:px-8 lg:px-16 py-6 pb-24 md:pb-6 bg-white">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex flex-col mb-6">
-            <h1 className="text-3xl font-bold text-[#124076]">Public Report Feed</h1>
+            <h1 className="text-3xl font-bold text-[#124076] pt-4">Public Report Feed</h1>
             <p className="text-sm text-gray-500">
               View and track real-time reports from the community
               {!isAuthenticated && authChecked && (

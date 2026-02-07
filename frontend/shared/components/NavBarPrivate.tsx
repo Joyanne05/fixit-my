@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useRouter } from "next/navigation";
 import AuthModal from '@/app/auth/components/AuthModal';
+import MobileBottomNav from './MobileBottomNav';
 
 import { CircleUser } from 'lucide-react';
 
@@ -29,7 +30,7 @@ const Navbar: React.FC = () => {
 
 
                     {/* Actions */}
-                    <div className="flex items-center space-x-3 sm:space-x-6">
+                    <div className="hidden md:block flex items-center space-x-3 sm:space-x-6">
                         <button
                             onClick={() => router.push("/dashboard/report")}
                             className="cursor-pointer bg-brand-primary text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all shadow-sm hover:shadow-md active:scale-95"
@@ -56,6 +57,7 @@ const Navbar: React.FC = () => {
             isOpen={isSignInModalOpen}
             onClose={() => setIsSignInModalOpen(false)}
         />
+        <MobileBottomNav />
     </>;
 };
 

@@ -172,7 +172,7 @@ export default function ProfilePage() {
         <div className="min-h-screen bg-page-bg">
             <NavBarPrivate />
 
-            <main className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+            <main className="pt-24 pb-24 md:pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
                 {/* Profile Header */}
                 <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 shadow-sm mb-8">
                     <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">

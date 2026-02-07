@@ -115,15 +115,15 @@ const CreateReportForm = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-18 pb-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 pt-24 pb-24 md:pb-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Back button on the top left side */}
-        <div className="flex justify-start">
+        <div className="flex justify-start mb-6 md:mb-0">
           <button
             onClick={() => router.push('/dashboard')}
-            className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-sm"
+            className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors bg-white px-4 py-2.5 rounded-xl border border-gray-100 shadow-sm active:scale-95"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={18} strokeWidth={2.5} />
             Back
           </button>
         </div>
