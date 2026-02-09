@@ -305,11 +305,10 @@ export default function ProfilePage() {
                                         {earnedBadges.length > 0 ? (
                                             earnedBadges.map((ub) => (
                                                 <div key={ub.id} className="text-center">
-                                                    <div className="w-16 h-16 mx-auto bg-brand-bg-light rounded-2xl flex items-center justify-center mb-3">
-                                                        {ub.badge.badge_name === "FIRST_REPORT" && <Trophy size={28} className="text-amber-500" />}
-                                                        {ub.badge.badge_name === "HELPER" && <Heart size={28} className="text-teal-500" />}
-                                                        {ub.badge.badge_name === "RESOLVER" && <CheckCircle size={28} className="text-green-500" />}
-                                                        {!["FIRST_REPORT", "HELPER", "RESOLVER"].includes(ub.badge.badge_name) && <Trophy size={28} className="text-brand-primary" />}
+                                                    <div className="mx-auto rounded-2xl flex items-center justify-center mb-3">
+                                                        {ub.badge.badge_name === "FIRST_REPORT" && <img src="/badges/first_report_badge.png" alt="First Report Badge" className="w-25 rounded-xl" />}
+                                                        {ub.badge.badge_name === "HELPER" && <img src="/badges/mark_in_progress_badge.png" alt="Helper Badge" className="w-25 rounded-xl" />}
+                                                        {ub.badge.badge_name === "RESOLVER" && <img src="/badges/community_verify_badge.png" alt="Resolver Badge" className="w-25 rounded-xl" />}
                                                     </div>
                                                     <p className="font-bold text-gray-900 text-sm capitalize">
                                                         {ub.badge.badge_name.replace("_", " ").toLowerCase()}
