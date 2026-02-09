@@ -1,6 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import NavBarPublic from "@/shared/components/NavBarPublic";
 import NavBarPrivate from "@/shared/components/NavBarPrivate";
+import { supabase } from "@/lib/supabaseClient";
+import SignInPromptModal from "@/shared/components/SignInPromptModal";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/apiClient";
 import {
@@ -63,6 +66,18 @@ export default function ReportDetailPage() {
     const [newComment, setNewComment] = useState("");
     const [postingComment, setPostingComment] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [authChecked, setAuthChecked] = useState(false);
+    const [showSignInModal, setShowSignInModal] = useState(false);
+
+    useEffect(() => {
+        const checkSession = async () => {
+            const { data } = await supabase.auth.getSession();
+            setIsAuthenticated(!!data.session);
+            setAuthChecked(true);
+        };
+        checkSession();
+    }, []);
 
     useEffect(() => {
         const fetchReport = async () => {
@@ -112,6 +127,10 @@ export default function ReportDetailPage() {
     }, [id]);
 
     async function handleFollow() {
+        if (!isAuthenticated) {
+            setShowSignInModal(true);
+            return;
+        }
         if (!isFollowing) {
             await api.post(`/report/follow`, { report_id: report?.id });
             setIsFollowing(true);
@@ -124,6 +143,10 @@ export default function ReportDetailPage() {
     }
 
     async function handlePostComment() {
+        if (!isAuthenticated) {
+            setShowSignInModal(true);
+            return;
+        }
         if (!newComment.trim()) return;
 
         setPostingComment(true);
@@ -156,7 +179,7 @@ export default function ReportDetailPage() {
     if (loading || !report) {
         return (
             <>
-                <NavBarPrivate />
+                {authChecked && (isAuthenticated ? <NavBarPrivate /> : <NavBarPublic />)}
                 <div className="pt-24 flex justify-center items-center min-h-[50vh]">
                     <div className="animate-pulse flex flex-col items-center">
                         <div className="h-4 w-32 bg-gray-200 rounded mb-4"></div>
@@ -201,7 +224,7 @@ export default function ReportDetailPage() {
 
     return (
         <div className="px-0 sm:px-4 lg:px-8 py-2 min-h-screen bg-page-bg">
-            <NavBarPrivate />
+            {authChecked && (isAuthenticated ? <NavBarPrivate /> : <NavBarPublic />)}
 
             <main className="pt-20 sm:pt-24 pb-24 md:pb-12 px-4 sm:px-6 max-w-7xl mx-auto font-sans">
                 {/* Breadcrumbs */}
@@ -307,10 +330,16 @@ export default function ReportDetailPage() {
                     </div>
 
                     <div className="flex md:flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                        <button className="w-full sm:w-auto border-2 border-green-100 text-green-600 px-6 py-3 rounded-xl cursor-pointer font-bold hover:bg-green-50 transition-colors text-center">
+                        <button
+                            onClick={() => isAuthenticated ? null : setShowSignInModal(true)}
+                            className="w-full sm:w-auto border-2 border-green-100 text-green-600 px-6 py-3 rounded-xl cursor-pointer font-bold hover:bg-green-50 transition-colors text-center"
+                        >
                             Mark In Progress
                         </button>
-                        <button className="w-full sm:w-auto bg-brand-primary text-white px-6 py-3 rounded-xl font-bold shadow-lg cursor-pointer hover:bg-brand-secondary transition-all flex items-center justify-center gap-2 whitespace-nowrap">
+                        <button
+                            onClick={() => isAuthenticated ? null : setShowSignInModal(true)}
+                            className="w-full sm:w-auto bg-brand-primary text-white px-6 py-3 rounded-xl font-bold shadow-lg cursor-pointer hover:bg-brand-secondary transition-all flex items-center justify-center gap-2 whitespace-nowrap"
+                        >
                             <CheckCircle2 size={18} />
                             Mark as Closed
                         </button>
@@ -478,6 +507,10 @@ export default function ReportDetailPage() {
                     </div>
                 </div>
             </main>
+            <SignInPromptModal
+                isOpen={showSignInModal}
+                onClose={() => setShowSignInModal(false)}
+            />
         </div>
     );
 }

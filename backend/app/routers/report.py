@@ -165,7 +165,7 @@ async def list_reports(user=Depends(get_optional_user)):
 
 # Get report by ID (include creator info, comments, followers)
 @router.get("/{report_id}", response_model=ReportDetailResponse)
-async def get_report(report_id: int, user=Depends(get_current_user)):
+async def get_report(report_id: int, user=Depends(get_optional_user)):
     user_id = user.id if user else None
 
     report_res = (

@@ -67,11 +67,7 @@ const ReportCard: React.FC<ReportCardProps> = ({ report, isAuthenticated = true,
   }
 
   function handleCardClick() {
-    // Check auth before navigating to report detail
-    if (!isAuthenticated && onAuthRequired) {
-      onAuthRequired();
-      return;
-    }
+    // Navigate to report detail regardless of auth status
     router.push(`/reports/${report.id}`);
   }
 

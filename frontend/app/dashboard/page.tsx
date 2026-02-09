@@ -6,7 +6,7 @@ import ReportCard from "./components/ReportCard";
 import ReportSkeleton from "./components/ReportSkeleton";
 import { Report, ReportStatus } from "@/types/report";
 import { supabase } from "@/lib/supabaseClient";
-import SignInPromptModal from "@/app/components/SignInPromptModal";
+import SignInPromptModal from "@/shared/components/SignInPromptModal";
 import { Search } from "lucide-react";
 
 function timeAgo(dateString: string) {
