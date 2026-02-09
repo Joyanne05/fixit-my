@@ -81,3 +81,17 @@ async def get_user_badges(user = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail="Failed to fetch user badges")
     
     return {"badges": result.data}
+
+@router.get("/all-badges")
+async def get_all_badges():
+    try:
+        result = (
+            supabase.table("badges")
+            .select("*")
+            .execute()
+        )
+    except Exception as e:
+        print(f"Error fetching all badges: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch all badges")
+    
+    return {"badges": result.data}

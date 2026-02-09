@@ -102,6 +102,7 @@ export default function ProfilePage() {
     const [actions, setActions] = useState<UserAction[]>([]);
     const [myReports, setMyReports] = useState<MyReport[]>([]);
     const [earnedBadges, setEarnedBadges] = useState<UserBadge[]>([]);
+    const [allBadges, setAllBadges] = useState<BadgeInfo[]>([]);
     const [totalPoints, setTotalPoints] = useState(0);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("profile");
@@ -116,17 +117,19 @@ export default function ProfilePage() {
             }
 
             try {
-                const [userRes, actionsRes, reportsRes, badgesRes] = await Promise.all([
+                const [userRes, actionsRes, reportsRes, badgesRes, allBadgesRes] = await Promise.all([
                     api.get<UserData>("/user/me"),
                     api.get<{ actions: UserAction[] }>("/user/actions"),
                     api.get<MyReport[]>("/user/my-reports"),
                     api.get<{ badges: UserBadge[] }>("/user/badges"),
+                    api.get<{ badges: BadgeInfo[] }>("/user/all-badges"),
                 ]);
 
                 setUser(userRes.data);
                 setActions(actionsRes.data.actions);
                 setMyReports(reportsRes.data);
                 setEarnedBadges(badgesRes.data.badges);
+                setAllBadges(allBadgesRes.data.badges);
 
                 // Calculate total points
                 const points = actionsRes.data.actions.reduce(
@@ -296,26 +299,43 @@ export default function ProfilePage() {
                                 <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
                                     <div className="flex justify-between items-center mb-6">
                                         <h3 className="text-lg font-bold text-gray-900">Earned Badges</h3>
-                                        <button className="text-brand-primary text-sm font-bold hover:underline">
+                                        {/* <button className="text-brand-primary text-sm font-bold hover:underline">
                                             View All
-                                        </button>
+                                        </button> */}
                                     </div>
 
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-                                        {earnedBadges.length > 0 ? (
-                                            earnedBadges.map((ub) => (
-                                                <div key={ub.id} className="text-center">
-                                                    <div className="mx-auto rounded-2xl flex items-center justify-center mb-3">
-                                                        {ub.badge.badge_name === "FIRST_REPORT" && <img src="/badges/first_report_badge.png" alt="First Report Badge" className="w-25 rounded-xl" />}
-                                                        {ub.badge.badge_name === "HELPER" && <img src="/badges/mark_in_progress_badge.png" alt="Helper Badge" className="w-25 rounded-xl" />}
-                                                        {ub.badge.badge_name === "RESOLVER" && <img src="/badges/community_verify_badge.png" alt="Resolver Badge" className="w-25 rounded-xl" />}
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
+                                        {allBadges.length > 0 ? (
+                                            allBadges.map((badge) => {
+                                                const isEarned = earnedBadges.some(ub => ub.badge.badge_id === badge.badge_id);
+                                                return (
+                                                    <div key={badge.badge_id} className="flex flex-col items-center">
+                                                        <div className={`medal-container mb-4 ${!isEarned ? 'opacity-30 grayscale blur-[1px]' : ''}`}>
+                                                            <div className="medal-circle">
+                                                                {badge.badge_name === "FIRST_REPORT" && <img src="/badges/first_report_badge.png" alt="First Report" className="w-14 h-14 object-contain rounded-full" />}
+                                                                {badge.badge_name === "HELPER" && <img src="/badges/mark_in_progress_badge.png" alt="Helper" className="w-14 h-14 object-contain rounded-full" />}
+                                                                {badge.badge_name === "RESOLVER" && <img src="/badges/community_verify_badge.png" alt="Resolver" className="w-14 h-14 object-contain rounded-full" />}
+                                                            </div>
+                                                            <div className="medal-ribbon"></div>
+                                                            {!isEarned && (
+                                                                <div className="absolute inset-0 flex items-center justify-center z-20">
+                                                                    <div className="bg-gray-900/10 rounded-full p-2">
+                                                                        <Settings size={20} className="text-gray-500 opacity-50" />
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-center">
+                                                            <p className={`font-bold text-sm capitalize ${isEarned ? 'text-gray-900' : 'text-gray-400'}`}>
+                                                                {badge.badge_name.replace("_", " ").toLowerCase()}
+                                                            </p>
+                                                            <p className="text-[10px] text-gray-400 max-w-[120px] mx-auto leading-tight mt-1">
+                                                                {badge.badge_description}
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                    <p className="font-bold text-gray-900 text-sm capitalize">
-                                                        {ub.badge.badge_name.replace("_", " ").toLowerCase()}
-                                                    </p>
-                                                    <p className="text-xs text-gray-400">{ub.badge.badge_description}</p>
-                                                </div>
-                                            ))
+                                                );
+                                            })
                                         ) : (
                                             <div className="col-span-full text-center py-8 text-gray-400">
                                                 No badges earned yet. Start by submitting a report!
