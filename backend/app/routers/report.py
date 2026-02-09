@@ -2,7 +2,7 @@ from fastapi import APIRouter, Form, File, UploadFile, Depends, HTTPException
 from uuid import uuid4
 from app.services.supabase_client import supabase
 from app.dependencies.auth import get_current_user, get_optional_user
-from app.schemas.report_schema import Report, ReportListResponse, ReportDetailResponse, ReportFollowRequest, ReportCommentRequest
+from app.schemas.report_schema import Report, ReportListResponse, ReportDetailResponse, ReportFollowRequest, ReportCommentRequest, ReportInProgressRequest, ReportCloseRequest, ReportConfirmRequest
 from app.utils.action import record_user_action
 
 router = APIRouter(
@@ -249,6 +249,10 @@ async def unfollow_report(req: ReportFollowRequest, user=Depends(get_current_use
     supabase.table("user_actions").delete().eq("report_id", req.report_id).eq(
         "user_id", user.id
     ).eq("action_name", "FOLLOW_REPORT").execute()
+
+    supabase.table("report_helpers").delete().eq("report_id", req.report_id).eq(
+        "user_id", user.id
+    ).execute()
     return {"message": "Report unfollowed successfully"}
 
 # Fetch comments
@@ -294,3 +298,88 @@ async def add_comment(req: ReportCommentRequest, user=Depends(get_current_user))
         print(f"Comment error: {str(e)}")
 
     return {"message": "Comment added successfully"}
+
+# Mark issue as in progress 
+@router.post("/in-progress")
+async def in_progress_issue(req: ReportInProgressRequest, user=Depends(get_current_user)):
+    try:
+        supabase.table("reports").update({"status": "in_progress"}).eq("report_id", req.report_id).execute()
+        supabase.table("report_helpers").insert({"report_id": req.report_id, "user_id": user.id}).execute()
+    except Exception as e:
+        print(f"In progress error: {str(e)}")
+    return {"message": "Issue marked as in progress successfully"}
+
+# Mark issue as closed 
+@router.post("/close")
+async def close_issue(req: ReportCloseRequest, user=Depends(get_current_user)):
+    try:
+        supabase.table("reports").update({"status": "in_progress","closed_by": user.id}).eq("report_id", req.report_id).execute()
+    except Exception as e:
+        print(f"Close error: {str(e)}")
+    return {"message": "Issue closed successfully"}
+
+# Add community confirmation 
+@router.post("/community-verify")
+async def add_community_confirmation(req: ReportConfirmRequest, user=Depends(get_current_user)):
+    try:
+        # Check if user already verified
+        existing = supabase.table("community_confirmations").select("*").eq("report_id", req.report_id).eq("user_id", user.id).execute()
+        if existing.data:
+            raise HTTPException(status_code=400, detail="You have already verified this report")
+        
+        # Insert verification
+        supabase.table("community_confirmations").insert(
+            {"report_id": req.report_id, "user_id": user.id}
+        ).execute()
+        
+        # Record action
+        record_user_action(user.id, "VERIFY_CLOSED", req.report_id)
+        
+        # Check count and update status if >= 3
+        confirmations = supabase.table("community_confirmations").select("*").eq("report_id", req.report_id).execute()
+        count = len(confirmations.data)
+        
+        if count >= 3:
+            supabase.table("reports").update({"status": "closed"}).eq("report_id", req.report_id).execute()
+            return {"message": "Issue verified and closed!", "count": count, "status": "closed"}
+        
+        return {"message": "Community confirmation added successfully", "count": count}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Confirm error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error adding confirmation")
+
+# Community confirmations count for report 
+@router.get("/community-verify-status/{report_id}")
+async def get_community_verify_status(report_id: int, user=Depends(get_optional_user)):
+    try:
+        # Get confirmation count
+        confirmations = supabase.table("community_confirmations").select("*").eq("report_id", report_id).execute()
+        count = len(confirmations.data) if confirmations.data else 0
+        
+        # Check if current user has verified
+        has_verified = False
+        if user:
+            has_verified = any(c.get("user_id") == user.id for c in confirmations.data) if confirmations.data else False
+        
+        # Get report to check closed_by
+        report = supabase.table("reports").select("closed_by, users!reports_closed_by_fkey(name, avatar)").eq("report_id", report_id).execute()
+        
+        closed_by_user = None
+        if report.data and report.data[0].get("closed_by"):
+            user_data = report.data[0].get("users")
+            if user_data:
+                closed_by_user = {
+                    "name": user_data.get("name"),
+                    "avatar": user_data.get("avatar")
+                }
+        
+        return {
+            "count": count,
+            "has_verified": has_verified,
+            "closed_by": closed_by_user
+        }
+    except Exception as e:
+        print(f"Verify status error: {str(e)}")
+        return {"count": 0, "has_verified": False, "closed_by": None}

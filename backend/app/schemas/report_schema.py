@@ -49,3 +49,12 @@ class ReportFollowRequest(BaseModel):
 class ReportCommentRequest(BaseModel):
     report_id: int
     comment: str
+
+class ReportInProgressRequest(BaseModel):
+    report_id: int
+
+class ReportCloseRequest(BaseModel):
+    report_id: int
+
+class ReportConfirmRequest(BaseModel):
+    report_id: int

@@ -70,6 +70,15 @@ export default function ReportDetailPage() {
     const [authChecked, setAuthChecked] = useState(false);
     const [showSignInModal, setShowSignInModal] = useState(false);
 
+    // Verification state
+    const [verificationCount, setVerificationCount] = useState(0);
+    const [hasVerified, setHasVerified] = useState(false);
+    const [closedByUser, setClosedByUser] = useState<{ name: string; avatar: string } | null>(null);
+    const [updatingStatus, setUpdatingStatus] = useState(false);
+    const [showNoAckWarning, setShowNoAckWarning] = useState(false);
+    const [pendingAction, setPendingAction] = useState<'in_progress' | 'closed' | null>(null);
+    const [showFollowRequired, setShowFollowRequired] = useState(false);
+
     useEffect(() => {
         const checkSession = async () => {
             const { data } = await supabase.auth.getSession();
@@ -125,6 +134,103 @@ export default function ReportDetailPage() {
 
         if (id) fetchReport();
     }, [id]);
+
+    // Fetch verification status
+    useEffect(() => {
+        const fetchVerificationStatus = async () => {
+            if (!id) return;
+            try {
+                const response = await api.get<{ count: number; has_verified: boolean; closed_by: { name: string; avatar: string } | null }>(`/report/community-verify-status/${id}`);
+                setVerificationCount(response.data.count);
+                setHasVerified(response.data.has_verified);
+                setClosedByUser(response.data.closed_by);
+            } catch (error) {
+                console.error("Error fetching verification status:", error);
+            }
+        };
+        fetchVerificationStatus();
+    }, [id]);
+
+    async function handleMarkInProgress(forceAction = false) {
+        if (!isAuthenticated) {
+            setShowSignInModal(true);
+            return;
+        }
+        if (!isFollowing) {
+            setShowFollowRequired(true);
+            return;
+        }
+
+        // Check if there are no comments (not acknowledged yet)
+        if (!forceAction && comments.length === 0) {
+            setPendingAction('in_progress');
+            setShowNoAckWarning(true);
+            return;
+        }
+
+        setUpdatingStatus(true);
+        try {
+            await api.post(`/report/in-progress`, { report_id: id });
+            setReport(prev => prev ? { ...prev, status: ReportStatus.IN_PROGRESS } : prev);
+        } catch (error) {
+            console.error("Error marking in progress:", error);
+        } finally {
+            setUpdatingStatus(false);
+        }
+    }
+
+    async function handleMarkClosed(forceClose = false) {
+        if (!isAuthenticated) {
+            setShowSignInModal(true);
+            return;
+        }
+        if (!isFollowing) {
+            setShowFollowRequired(true);
+            return;
+        }
+
+        // Check if there are no comments (not acknowledged yet)
+        if (!forceClose && comments.length === 0) {
+            setPendingAction('closed');
+            setShowNoAckWarning(true);
+            return;
+        }
+
+        setUpdatingStatus(true);
+        try {
+            await api.post(`/report/close`, { report_id: id });
+            // Refresh verification status to show closed_by
+            const response = await api.get<{ count: number; has_verified: boolean; closed_by: { name: string; avatar: string } | null }>(`/report/community-verify-status/${id}`);
+            setClosedByUser(response.data.closed_by);
+        } catch (error) {
+            console.error("Error marking closed:", error);
+        } finally {
+            setUpdatingStatus(false);
+        }
+    }
+
+    async function handleCommunityVerify() {
+        if (!isAuthenticated) {
+            setShowSignInModal(true);
+            return;
+        }
+        if (hasVerified) return;
+
+        setUpdatingStatus(true);
+        try {
+            const response = await api.post<{ count: number; status?: string }>(`/report/community-verify`, { report_id: id });
+            setVerificationCount(response.data.count);
+            setHasVerified(true);
+
+            if (response.data.status === 'closed') {
+                setReport(prev => prev ? { ...prev, status: ReportStatus.RESOLVED } : prev);
+            }
+        } catch (error) {
+            console.error("Error verifying:", error);
+        } finally {
+            setUpdatingStatus(false);
+        }
+    }
 
     async function handleFollow() {
         if (!isAuthenticated) {
@@ -294,6 +400,9 @@ export default function ReportDetailPage() {
                                     dateDisplay = new Date(report.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                                 } else if (isActive) {
                                     dateDisplay = 'Active Now';
+                                } else if (isPast && !isActive) {
+                                    // Past steps that aren't active should show "Completed"
+                                    dateDisplay = 'Completed';
                                 }
 
                                 return (
@@ -331,17 +440,19 @@ export default function ReportDetailPage() {
 
                     <div className="flex md:flex-col sm:flex-row gap-3 w-full sm:w-auto">
                         <button
-                            onClick={() => isAuthenticated ? null : setShowSignInModal(true)}
-                            className="w-full sm:w-auto border-2 border-green-100 text-green-600 px-6 py-3 rounded-xl cursor-pointer font-bold hover:bg-green-50 transition-colors text-center"
+                            onClick={() => handleMarkInProgress()}
+                            disabled={updatingStatus || report.status === ReportStatus.IN_PROGRESS}
+                            className="w-full sm:w-auto border-2 border-green-100 text-green-600 px-6 py-3 rounded-xl cursor-pointer font-bold hover:bg-green-50 transition-colors text-center disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Mark In Progress
+                            {updatingStatus ? 'Updating...' : 'Mark In Progress'}
                         </button>
                         <button
-                            onClick={() => isAuthenticated ? null : setShowSignInModal(true)}
-                            className="w-full sm:w-auto bg-brand-primary text-white px-6 py-3 rounded-xl font-bold shadow-lg cursor-pointer hover:bg-brand-secondary transition-all flex items-center justify-center gap-2 whitespace-nowrap"
+                            onClick={() => handleMarkClosed()}
+                            disabled={updatingStatus || closedByUser !== null}
+                            className="w-full sm:w-auto bg-brand-primary text-white px-6 py-3 rounded-xl font-bold shadow-lg cursor-pointer hover:bg-brand-secondary transition-all flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <CheckCircle2 size={18} />
-                            Mark as Closed
+                            {closedByUser ? 'Pending Verification' : 'Mark as Closed'}
                         </button>
                     </div>
                 </div>
@@ -371,9 +482,9 @@ export default function ReportDetailPage() {
                             </div>
                         </div>
 
-                        {/* Confirmation Section - Simplified for brevity in diff, keeping logic same but style optimised */}
-                        {report.status === ReportStatus.RESOLVED ? (
-                            // ACTIVE STATE
+                        {/* Confirmation Section - Shows when closed_by is set */}
+                        {closedByUser !== null ? (
+                            // ACTIVE STATE - Someone has marked it for verification
                             <div className="bg-white rounded-2xl p-6 border-2 border-brand-primary shadow-sm order-3 lg:order-none">
                                 <div className="flex flex-col sm:flex-row justify-between items-start mb-6 gap-4">
                                     <div>
@@ -385,26 +496,30 @@ export default function ReportDetailPage() {
                                             Are you at this location? Help the community by verifying that this issue has been resolved.
                                         </p>
                                     </div>
-                                    <button className="w-full sm:w-auto bg-brand-primary hover:bg-brand-secondary text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-green-200 flex items-center justify-center gap-2 transition-all active:scale-95 whitespace-nowrap">
+                                    <button
+                                        onClick={handleCommunityVerify}
+                                        disabled={hasVerified || updatingStatus}
+                                        className="w-full sm:w-auto bg-brand-primary hover:bg-brand-secondary text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-green-200 flex items-center justify-center gap-2 transition-all active:scale-95 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
                                         <span className="bg-white/20 p-1 rounded-full"><Check size={14} strokeWidth={4} /></span>
-                                        I Confirm It's Fixed
+                                        {hasVerified ? 'Already Verified' : "I Confirm It's Fixed"}
                                     </button>
                                 </div>
 
                                 <div className="flex flex-col md:flex-row items-center gap-6 mt-6 pt-6 border-t border-gray-50">
-                                    {/* Verified Item */}
+                                    {/* Closed By User */}
                                     <div className="flex items-center gap-4 bg-gray-50 p-3 rounded-xl border border-gray-100 w-full md:w-auto pr-8">
                                         <div className="relative">
                                             <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
-                                                <img src="https://i.pravatar.cc/100?img=5" className="w-full h-full object-cover" alt="Sarah J." />
+                                                <img src={closedByUser.avatar || 'https://i.pravatar.cc/100'} className="w-full h-full object-cover" alt={closedByUser.name} referrerPolicy="no-referrer" />
                                             </div>
                                             <div className="absolute -bottom-1 -right-1 bg-brand-primary border-2 border-white rounded-full p-0.5">
                                                 <Check size={10} className="text-white" strokeWidth={4} />
                                             </div>
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold text-gray-900">Resolved by Sarah J.</p>
-                                            <p className="text-xs text-gray-400 font-medium">Today, 10:24 AM</p>
+                                            <p className="text-sm font-bold text-gray-900">Marked by {closedByUser.name}</p>
+                                            <p className="text-xs text-gray-400 font-medium">Awaiting verification</p>
                                         </div>
                                     </div>
 
@@ -414,11 +529,13 @@ export default function ReportDetailPage() {
                                     <div className="flex-1 w-full">
                                         <div className="flex items-center gap-3 mb-2">
                                             <div className="h-2 flex-1 bg-gray-100 rounded-full overflow-hidden max-w-[200px]">
-                                                <div className="h-full w-1/2 bg-brand-primary rounded-full"></div>
+                                                <div className="h-full bg-brand-primary rounded-full transition-all" style={{ width: `${Math.min((verificationCount / 3) * 100, 100)}%` }}></div>
                                             </div>
-                                            <span className="text-brand-primary font-bold text-sm">1/3</span>
+                                            <span className="text-brand-primary font-bold text-sm">{verificationCount}/3</span>
                                         </div>
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">2 More Community Confirmation Needed</p>
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                            {3 - verificationCount > 0 ? `${3 - verificationCount} More Community Confirmation Needed` : 'Verification Complete!'}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -511,6 +628,83 @@ export default function ReportDetailPage() {
                 isOpen={showSignInModal}
                 onClose={() => setShowSignInModal(false)}
             />
+
+            {/* No Acknowledgment Warning Modal */}
+            {showNoAckWarning && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-amber-100 rounded-full">
+                                <MessageSquare size={24} className="text-amber-600" />
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-900">No Interactions Yet</h3>
+                        </div>
+                        <p className="text-gray-600 mb-6">
+                            This issue has no comments or interactions that acknowledge it. Are you sure you want to {pendingAction === 'closed' ? 'mark it as closed' : 'mark it in progress'}?
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowNoAckWarning(false);
+                                    setPendingAction(null);
+                                }}
+                                className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowNoAckWarning(false);
+                                    if (pendingAction === 'closed') {
+                                        handleMarkClosed(true);
+                                    } else {
+                                        handleMarkInProgress(true);
+                                    }
+                                    setPendingAction(null);
+                                }}
+                                className="flex-1 px-4 py-2.5 bg-brand-primary text-white rounded-xl font-semibold hover:bg-brand-secondary transition-colors"
+                            >
+                                Continue Anyway
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Follow Required Modal */}
+            {showFollowRequired && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-blue-100 rounded-full">
+                                <Bell size={24} className="text-blue-600" />
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-900">Follow Required</h3>
+                        </div>
+                        <p className="text-gray-600 mb-6">
+                            You must follow this report before you can change its status. Following ensures you're committed to tracking this issue.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowFollowRequired(false)}
+                                className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    setShowFollowRequired(false);
+                                    await handleFollow();
+                                }}
+                                className="flex-1 px-4 py-2.5 bg-brand-primary text-white rounded-xl font-semibold hover:bg-brand-secondary transition-colors flex items-center justify-center gap-2"
+                            >
+                                <Bell size={16} />
+                                Follow Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
