@@ -70,7 +70,7 @@ export default function Home() {
 
           {/* CTAs */}
           <div className="flex sm:flex-row items-center justify-center gap-4">
-            <Link href="/dashboard" className="flex items-center justify-center px-8 py-3 bg-[#124076] rounded-full text-white hover:bg-brand-primary transition-all shadow-xl hover:shadow-brand-primary/20 hover:-translate-y-1 w-full sm:w-auto group cursor-pointer text-md">
+            <Link href="/dashboard" className="flex items-center justify-center px-8 py-3 bg-[#124076] rounded-full text-white hover:bg-brand-primary transition-all shadow-xl hover:shadow-brand-primary/20 hover:-translate-y-1 w-72 group cursor-pointer text-md">
               Browse Reports
               <ArrowRight size={22} className="ml-2 group-hover:translate-x-1 transition-transform" />
             </Link>
@@ -109,7 +109,7 @@ export default function Home() {
                 </div>
               </div>
               <div className="mt-0 sm:mt-auto flex justify-center w-24 sm:w-auto lg:absolute lg:bottom-8 lg:right-5 lg:w-3/5">
-                <img src="/lp_capture_issue.png" alt="Capture Issue" className="rounded-full w-full sm:w-60  object-contain transform group-hover:scale-105 transition-transform duration-500" />
+                <img src="/lp_capture_issue.png" alt="Capture Issue" className="rounded-xl w-full sm:w-60  object-contain transform group-hover:scale-105 transition-transform duration-500" />
               </div>
             </div>
 
