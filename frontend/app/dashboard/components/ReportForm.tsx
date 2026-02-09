@@ -1,6 +1,6 @@
 "use client";
-import React, { useState } from 'react';
-import { Camera, CheckCircle, ChevronDown, User, ArrowLeft, WifiOff } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Camera, CheckCircle, ChevronDown, ArrowLeft } from 'lucide-react';
 import { api } from '@/lib/apiClient';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
@@ -22,6 +22,28 @@ const CreateReportForm = () => {
     location: '',
     photo: null
   });
+
+  // Check for quick report image from sessionStorage
+  useEffect(() => {
+    const imageData = sessionStorage.getItem('quickReportImage');
+    const imageName = sessionStorage.getItem('quickReportImageName');
+    const imageType = sessionStorage.getItem('quickReportImageType');
+
+    if (imageData && imageName && imageType) {
+      // Convert base64 back to File
+      fetch(imageData)
+        .then(res => res.blob())
+        .then(blob => {
+          const file = new File([blob], imageName, { type: imageType });
+          setSelectedFiles([file]);
+        });
+
+      // Clear sessionStorage after retrieving
+      sessionStorage.removeItem('quickReportImage');
+      sessionStorage.removeItem('quickReportImageName');
+      sessionStorage.removeItem('quickReportImageType');
+    }
+  }, []);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -93,7 +115,7 @@ const CreateReportForm = () => {
           'Authorization': `Bearer ${token}`,
         },
       });
-      console.log("Report submitted successfully:", res);
+
       // Only redirect if form is not empty and submission succeeded
       setForm({
         title: '',
@@ -204,7 +226,12 @@ const CreateReportForm = () => {
                   Attach 1 Photo (Optional)
                 </label>
                 <div
-                  className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${dragActive ? 'border-brand-primary bg-brand-bg-light' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
+                  className={`relative border-2 border-dashed rounded-xl overflow-hidden transition-all ${selectedFiles.length > 0
+                    ? 'border-brand-primary bg-brand-bg-light'
+                    : dragActive
+                      ? 'border-brand-primary bg-brand-bg-light'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    }`}
                   onDragEnter={handleDrag}
                   onDragLeave={handleDrag}
                   onDragOver={handleDrag}
@@ -212,10 +239,43 @@ const CreateReportForm = () => {
                   onClick={handleClickUpload}
                   style={{ cursor: 'pointer' }}
                 >
-                  <div className="w-12 h-12 bg-brand-bg-light text-brand-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Camera size={24} />
-                  </div>
-                  <h3 className="text-gray-900 font-medium mb-1">Click to upload or drag and drop</h3>
+                  {selectedFiles.length > 0 ? (
+                    /* Image Preview - Full Container */
+                    <div className="relative aspect-[4/3] w-full">
+                      <img
+                        src={URL.createObjectURL(selectedFiles[0])}
+                        alt={selectedFiles[0].name}
+                        className="w-full h-full object-cover"
+                      />
+                      {/* Overlay with remove button */}
+                      <div className="absolute inset-0 bg-black/0 hover:bg-black/40 transition-all flex items-center justify-center group">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedFiles([]);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 bg-white text-gray-700 px-4 py-2 rounded-lg font-semibold shadow-lg hover:bg-red-50 hover:text-red-600 transition-all"
+                        >
+                          Remove Photo
+                        </button>
+                      </div>
+                      {/* Photo indicator badge */}
+                      <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium text-gray-700 shadow-sm">
+                        <Camera size={16} className="text-brand-primary" />
+                        Photo attached
+                      </div>
+                    </div>
+                  ) : (
+                    /* Upload Prompt */
+                    <div className="p-8 text-center">
+                      <div className="w-12 h-12 bg-brand-bg-light text-brand-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Camera size={24} />
+                      </div>
+                      <h3 className="text-gray-900 font-medium mb-1">Click to upload or drag and drop</h3>
+                      <p className="text-sm text-gray-500">Supports JPG, PNG, HEIC</p>
+                    </div>
+                  )}
                   <input
                     type="file"
                     accept="image/*"
@@ -225,19 +285,6 @@ const CreateReportForm = () => {
                     value={form.photo ? undefined : ''}
                     onChange={handleFileChange}
                   />
-                  {selectedFiles.length > 0 && (
-                    <div className="mt-4 flex flex-wrap gap-2 justify-center">
-                      {selectedFiles.map((file, idx) => (
-                        <div key={idx} className="w-16 h-16 rounded overflow-hidden border border-gray-200 bg-white flex items-center justify-center">
-                          <img
-                            src={URL.createObjectURL(file)}
-                            alt={file.name}
-                            className="object-cover w-full h-full"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
                 {errorMsg && (
                   <div className="mb-4 mt-4 bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-center font-semibold">
@@ -251,7 +298,7 @@ const CreateReportForm = () => {
               <div className="pt-4 flex flex-col sm:flex-row items-center justify-end gap-4 border-t border-gray-100 mt-8">
                 <button
                   type="button"
-
+                  onClick={() => router.push('/dashboard')}
                   className="w-full sm:w-auto px-6 py-3 text-gray-600 font-semibold hover:text-gray-800 transition-colors"
                 >
                   Cancel
