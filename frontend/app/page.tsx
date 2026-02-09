@@ -82,17 +82,17 @@ export default function Home() {
       {/* How It Works Section */}
       <section className="py-20 bg-[#f8fafc]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 font-outfit">
+          <div className="mb-14">
+            <h2 className="text-center md:text-left text-4xl md:text-5xl font-bold text-gray-900 mb-4 font-outfit">
               A Simpler Way to <br />
               <span className="text-brand-primary italic font-playfair">Take Action</span>
             </h2>
-            <p className="text-gray-500 max-w-xl text-lg">
-              We've refined the civic engagement process into three effortless steps designed for modern life.
+            <p className="text-center md:text-left text-gray-500 max-w-xl text-lg">
+              We've refined the civic engagement process into three effortless steps.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
             {/* Step 1: Capture & Report */}
             <div className="bg-white rounded-[2rem] p-6 sm:p-10 shadow-sm border border-gray-100 flex flex-row lg:flex-col justify-between h-full group hover:shadow-md transition-shadow relative overflow-hidden">
               <div className="relative z-10 flex-1">
@@ -109,7 +109,7 @@ export default function Home() {
                 </div>
               </div>
               <div className="mt-0 sm:mt-auto flex justify-center w-24 sm:w-auto lg:absolute lg:bottom-8 lg:right-5 lg:w-3/5">
-                <img src="/lp_capture_issue.png" alt="Capture Issue" className="w-full sm:w-60 rounded-xl object-contain transform group-hover:scale-105 transition-transform duration-500" />
+                <img src="/lp_capture_issue.png" alt="Capture Issue" className="rounded-full w-full sm:w-60  object-contain transform group-hover:scale-105 transition-transform duration-500" />
               </div>
             </div>
 
