@@ -1,6 +1,8 @@
 # FixItMY
 
 A community-driven platform for reporting and resolving local issues.
+<img width="700" alt="screens" src="https://github.com/user-attachments/assets/6b72e332-eec2-4003-93f7-54e31e349030" />
+
 
 ## Tech Stack
 
