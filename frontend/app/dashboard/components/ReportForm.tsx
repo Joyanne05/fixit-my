@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Camera, CheckCircle, ChevronDown, ArrowLeft } from 'lucide-react';
+import { Camera, CheckCircle, ChevronDown, ArrowLeft, EyeOff } from 'lucide-react';
 import { api } from '@/lib/apiClient';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
@@ -15,6 +15,7 @@ const CreateReportForm = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     title: '',
@@ -103,6 +104,7 @@ const CreateReportForm = () => {
     formData.append('category', form.category);
     formData.append('description', form.description);
     formData.append('location', form.location);
+    formData.append('is_anonymous', isAnonymous.toString());
     if (selectedFiles.length > 0) {
       formData.append('photo', selectedFiles[0]); // Only the first image is sent
     }
@@ -295,6 +297,30 @@ const CreateReportForm = () => {
                 )}
               </div>
 
+
+              {/* Anonymous Toggle */}
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gray-200 rounded-lg text-gray-600">
+                    <EyeOff size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-gray-900">Submit Anonymously</p>
+                    <p className="text-xs text-gray-500">Your identity will be hidden from other users</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsAnonymous(!isAnonymous)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isAnonymous ? 'bg-brand-primary' : 'bg-gray-300'
+                    }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${isAnonymous ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                  />
+                </button>
+              </div>
 
               {/* Actions */}
               <div className="pt-4 flex flex-col sm:flex-row items-center justify-end gap-4 border-t border-gray-100 mt-8">

@@ -114,6 +114,7 @@ export default function ReportDetailPage() {
                     },
                     is_following: is_following,
                     followers_count: followers.length,
+                    is_anonymous: apiReport.is_anonymous,
                 };
 
                 setReport(mappedReport);
@@ -368,7 +369,7 @@ export default function ReportDetailPage() {
                         <div>
                             <h1 className="text-2xl sm:text-4xl font-extrabold text-gray-900 mb-2 sm:mb-3 tracking-tight leading-tight">{report.title}</h1>
                             <p className="text-gray-500 flex flex-wrap items-center gap-2 text-sm">
-                                Reported by {report.user?.name || 'Anonymous user'}, at {report.location}
+                                Reported by {report.is_anonymous ? 'Anonymous user' : (report.user?.name || 'Anonymous user')}, at {report.location}
                             </p>
                         </div>
 

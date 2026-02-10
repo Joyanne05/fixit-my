@@ -17,6 +17,7 @@ async def create_report(
     category: str = Form(...),
     description: str = Form(...),
     location: str = Form(...),
+    is_anonymous: bool = Form(False),
     photo: UploadFile | None = File(None),
     user=Depends(get_current_user),
 ) -> Report:
@@ -54,6 +55,7 @@ async def create_report(
                 "closed_by": None,
                 "location": location,
                 "photo_url": photo_url,
+                "is_anonymous": is_anonymous,
             }
         )
         .execute()
@@ -188,6 +190,10 @@ async def get_report(report_id: int, user=Depends(get_optional_user)):
         raise HTTPException(status_code=404, detail="Report not found")
 
     report = report_res.data
+
+    # Mask user info if report is anonymous
+    if report.get("is_anonymous"):
+        report["users"] = {"name": "Anonymous", "avatar": None}
 
     # Fetch followers (for follower list UI)
     followers_res = (

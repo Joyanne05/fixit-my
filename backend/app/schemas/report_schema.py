@@ -12,6 +12,7 @@ class ReportBase(BaseModel):
     description: str
     category: str
     location: str
+    is_anonymous: Optional[bool] = False
 
 class ReportCreate(ReportBase):
     pass

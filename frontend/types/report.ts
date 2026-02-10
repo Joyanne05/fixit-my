@@ -16,6 +16,7 @@ export interface Report {
   location: string;
   is_following: boolean;
   followers_count: number;
+  is_anonymous?: boolean;
   created_at?: string;
   user?: {
     name: string;
@@ -32,6 +33,7 @@ export interface ReportDetail {
     location: string;
     photo_url: string;
     created_at: string;
+    is_anonymous?: boolean;
     users: {
         name: string;
         avatar: string;
