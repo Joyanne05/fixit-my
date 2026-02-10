@@ -173,7 +173,7 @@ const CreateReportForm = () => {
                 <input
                   type="text" required
                   value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  placeholder="What's the issue? (e.g., Street light out on Elm St)"
+                  placeholder="What's the issue?"
                   className="w-full border border-gray-200 rounded-lg p-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-all"
                 />
               </div>
@@ -204,7 +204,7 @@ const CreateReportForm = () => {
                 <textarea
                   rows={4} required
                   value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="Provide as much detail as possible to help us resolve the issue quickly."
+                  placeholder="Provide as much detail as possible to help resolve the issue quickly."
                   className="w-full border border-gray-200 rounded-lg p-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-all resize-none"
                 />
               </div>
@@ -218,7 +218,7 @@ const CreateReportForm = () => {
                 <LocationAutocomplete
                   value={form.location}
                   onChange={(val) => setForm({ ...form, location: val })}
-                  placeholder="Enter the location of the issue (e.g., 89 Petaling St, Kuala Lumpur)"
+                  placeholder="Street, City, State"
                   required
                   className="w-full border border-gray-200 rounded-lg p-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-all"
                 />
@@ -299,20 +299,20 @@ const CreateReportForm = () => {
 
 
               {/* Anonymous Toggle */}
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gray-200 rounded-lg text-gray-600">
+              <div className="flex items-center justify-between gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="p-2 bg-gray-200 rounded-lg text-gray-600 shrink-0">
                     <EyeOff size={20} />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm font-bold text-gray-900">Submit Anonymously</p>
-                    <p className="text-xs text-gray-500">Your identity will be hidden from other users</p>
+                    <p className="text-xs text-gray-500 truncate">Your identity will be hidden from other users</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsAnonymous(!isAnonymous)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isAnonymous ? 'bg-brand-primary' : 'bg-gray-300'
+                  className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${isAnonymous ? 'bg-brand-primary' : 'bg-gray-300'
                     }`}
                 >
                   <span
@@ -324,13 +324,6 @@ const CreateReportForm = () => {
 
               {/* Actions */}
               <div className="pt-4 flex flex-col sm:flex-row items-center justify-end gap-4 border-t border-gray-100 mt-8">
-                <button
-                  type="button"
-                  onClick={() => router.push('/dashboard')}
-                  className="w-full sm:w-auto px-6 py-3 text-gray-600 font-semibold hover:text-gray-800 transition-colors"
-                >
-                  Cancel
-                </button>
                 <button
                   type="submit"
                   onClick={handleSubmit}
@@ -349,13 +342,20 @@ const CreateReportForm = () => {
                     </>
                   )}
                 </button>
+                <button
+                  type="button"
+                  onClick={() => router.push('/dashboard')}
+                  className="w-full sm:w-auto px-6 py-3 text-gray-600 font-semibold hover:text-gray-800 transition-colors"
+                >
+                  Cancel
+                </button>
               </div>
 
             </form>
           </div>
 
           {/* Info Box */}
-          <div className="mt-6 bg-brand-bg-light border border-brand-primary/20 rounded-xl p-4 flex gap-4 items-start">
+          <div className="mt-6 mb-6 bg-brand-bg-light border border-brand-primary/20 rounded-xl p-4 flex gap-4 items-start">
             <div className="text-brand-primary mt-1 flex-shrink-0">
               <div className="w-5 h-5 bg-brand-primary rounded text-white flex items-center justify-center text-xs">
                 <CheckCircle size={12} fill="white" className="text-brand-primary" />

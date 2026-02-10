@@ -8,6 +8,7 @@ import {
     PlusCircle, MessageSquare, ArrowRight, LogOut
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import Modal from "@/shared/components/Modal";
 
 interface UserData {
     user_id: string;
@@ -72,9 +73,9 @@ const getActionIcon = (actionName: string) => {
             return <PlusCircle size={18} className="text-green-600" />;
         case "FOLLOW_REPORT":
             return <Heart size={18} className="text-pink-500" />;
-        case "COMMENT":
+        case "COMMENT_REPORT":
             return <MessageSquare size={18} className="text-blue-500" />;
-        case "CONFIRM_RESOLUTION":
+        case "VERIFY_CLOSED":
             return <CheckCircle size={18} className="text-brand-primary" />;
         default:
             return <FileText size={18} className="text-gray-400" />;
@@ -89,8 +90,8 @@ const getActionLabel = (actionName: string) => {
             return "Followed a report";
         case "COMMENT_REPORT":
             return "Commented on a report";
-        case "CONFIRM_RESOLUTION":
-            return "Confirmed a resolution";
+        case "VERIFY_CLOSED":
+            return "Verified a closed report";
         default:
             return actionName;
     }
@@ -106,6 +107,7 @@ export default function ProfilePage() {
     const [totalPoints, setTotalPoints] = useState(0);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("profile");
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
 
     useEffect(() => {
         const checkSessionAndFetch = async () => {
@@ -264,7 +266,7 @@ export default function ProfilePage() {
                                     My Reports
                                 </button>
                                 <button
-                                    onClick={handleLogout}
+                                    onClick={() => setShowLogoutModal(true)}
                                     className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-red-600 hover:bg-red-50 transition-colors"
                                 >
                                     <LogOut size={18} />
@@ -359,8 +361,8 @@ export default function ProfilePage() {
                                             </button>
                                         </div>
                                     ) : (
-                                        <div className="space-y-6">
-                                            {actions.slice(0, 10).map((action) => (
+                                        <div className="space-y-6 max-h-[420px] overflow-y-auto pr-1">
+                                            {actions.map((action) => (
                                                 <div key={action.id} className="flex items-start gap-4 pb-6 border-b border-gray-50 last:border-b-0 last:pb-0">
                                                     <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center shrink-0">
                                                         {getActionIcon(action.action_name)}
@@ -385,12 +387,6 @@ export default function ProfilePage() {
                                                     </div>
                                                 </div>
                                             ))}
-
-                                            {actions.length > 10 && (
-                                                <button className="w-full text-center text-brand-primary font-bold text-sm py-3 hover:bg-brand-bg-light rounded-xl transition-colors">
-                                                    Load more activity
-                                                </button>
-                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -446,7 +442,35 @@ export default function ProfilePage() {
                         )}
                     </div>
                 </div>
-            </main >
+            </main>
+
+            <Modal
+                isOpen={showLogoutModal}
+                onClose={() => setShowLogoutModal(false)}
+                title="Log Out"
+            >
+                <div className="text-center py-4">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <LogOut className="text-red-600" size={28} />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Are you sure you want to log out?</h3>
+                    <p className="text-gray-500 text-sm mb-6">You will need to sign in again to access your account.</p>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => setShowLogoutModal(false)}
+                            className="flex-1 px-4 py-3 border border-gray-200 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleLogout}
+                            className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors"
+                        >
+                            Log Out
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div >
     );
 }

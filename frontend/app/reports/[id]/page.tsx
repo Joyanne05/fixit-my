@@ -445,7 +445,7 @@ export default function ReportDetailPage() {
                         </div>
                     </div>
 
-                    <div className="flex md:flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                         <button
                             onClick={() => handleMarkInProgress()}
                             disabled={updatingStatus || report.status === ReportStatus.IN_PROGRESS}
