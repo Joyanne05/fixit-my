@@ -1,0 +1,156 @@
+CREATE TABLE users (
+    user_id uuid PRIMARY KEY,         
+    name text NOT NULL,
+    avatar text,
+    points int DEFAULT 0,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE badges (
+    badge_id serial PRIMARY KEY,
+    badge_name text NOT NULL,
+    badge_description text
+);
+
+INSERT INTO badges (badge_name, badge_description) VALUES
+('FIRST_REPORT', 'Awarded for your first report'),
+('HELPER', 'Verified 10 community issues'),
+('RESOLVER', 'Successfully closed 5 reports');
+
+CREATE TABLE user_badges (
+    id serial PRIMARY KEY,
+    user_id uuid REFERENCES users(user_id) ON DELETE CASCADE,
+    badge_id int REFERENCES badges(badge_id) ON DELETE CASCADE,
+    earned_at timestamptz DEFAULT now(),
+    UNIQUE(user_id, badge_id)
+);
+
+CREATE TABLE reports (
+    report_id serial PRIMARY KEY,
+    title text NOT NULL,
+    description text NOT NULL,
+    category text,
+    status text DEFAULT 'open',  
+    created_by uuid REFERENCES users(user_id),
+    closed_by uuid REFERENCES users(user_id),
+    location text,              
+    photo_url text,
+    is_anonymous boolean DEFAULT false,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE comments (
+    id serial PRIMARY KEY,
+    report_id int REFERENCES reports(report_id) ON DELETE CASCADE,
+    user_id uuid REFERENCES users(user_id),
+    content text NOT NULL,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz
+);
+
+CREATE TABLE report_followers (
+    id serial PRIMARY KEY,
+    report_id int REFERENCES reports(report_id) ON DELETE CASCADE,
+    user_id uuid REFERENCES users(user_id),
+    followed_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE community_confirmations (
+    id serial PRIMARY KEY,
+    report_id int REFERENCES reports(report_id) ON DELETE CASCADE,
+    user_id uuid REFERENCES users(user_id),
+    confirmed_at timestamptz DEFAULT now()
+);
+
+CREATE TYPE action_type AS ENUM (
+    'CREATE_REPORT',
+    'FOLLOW_REPORT',
+    'COMMENT_REPORT',
+    'MARK_IN_PROGRESS',
+    'MARK_CLOSED',
+    'VERIFY_CLOSED'
+);
+
+CREATE TABLE user_actions (
+    id serial PRIMARY KEY,
+    user_id UUID NOT NULL,
+    action_name action_type NOT NULL,
+    points int NOT NULL DEFAULT 0,
+    report_id int REFERENCES reports(report_id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_user_actions_user_id ON user_actions(user_id);
+
+CREATE TABLE user_points (
+    id serial PRIMARY KEY,
+    user_id UUID NOT NULL,
+    action_id int NOT NULL REFERENCES user_actions(id) ON DELETE CASCADE,
+    points INT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_user_points_user_id ON user_points(user_id);
+
+CREATE TABLE report_helpers (
+    id serial PRIMARY KEY,
+    report_id int REFERENCES reports(report_id) ON DELETE CASCADE,
+    user_id uuid REFERENCES users(user_id),
+    claimed_at timestamptz DEFAULT now()
+);
+
+
+-- ============================================
+-- Row Level Security (RLS) Policies
+-- ============================================
+
+-- Users
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users are viewable by everyone" ON users FOR SELECT USING (true);
+CREATE POLICY "Users can insert their own profile" ON users FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Reports
+ALTER TABLE reports ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Reports are viewable by everyone" ON reports FOR SELECT USING (true);
+CREATE POLICY "Authenticated users can create reports" ON reports FOR INSERT WITH CHECK (auth.uid() = created_by);
+
+-- Comments
+ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Comments are viewable by everyone" ON comments FOR SELECT USING (true);
+CREATE POLICY "Authenticated users can post comments" ON comments FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Report Followers
+ALTER TABLE report_followers ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Followers are viewable by everyone" ON report_followers FOR SELECT USING (true);
+CREATE POLICY "Users can follow reports" ON report_followers FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Community Confirmations
+ALTER TABLE community_confirmations ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Confirmations are viewable by everyone" ON community_confirmations FOR SELECT USING (true);
+CREATE POLICY "Authenticated users can confirm" ON community_confirmations FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- User Actions
+ALTER TABLE user_actions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view their own actions" ON user_actions FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "System can insert actions" ON user_actions FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- User Points
+ALTER TABLE user_points ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view their own points" ON user_points FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "System can insert points" ON user_points FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Badges
+ALTER TABLE badges ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Badges are viewable by everyone" ON badges FOR SELECT USING (true);
+
+-- User Badges
+ALTER TABLE user_badges ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "User badges are viewable by everyone" ON user_badges FOR SELECT USING (true);
+CREATE POLICY "System can award badges" ON user_badges FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Report Helpers
+ALTER TABLE report_helpers ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Helpers are viewable by everyone" ON report_helpers FOR SELECT USING (true);
+CREATE POLICY "Users can claim reports" ON report_helpers FOR INSERT WITH CHECK (auth.uid() = user_id);
