@@ -143,7 +143,7 @@ const CreateReportForm = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-24 md:pb-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 pt-6 md:pt-24 pb-24 md:pb-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Back button on the top left side */}
         <div className="flex justify-start mb-6 md:mb-0">

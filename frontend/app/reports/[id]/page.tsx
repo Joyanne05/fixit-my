@@ -289,7 +289,7 @@ export default function ReportDetailPage() {
         return (
             <>
                 {authChecked && (isAuthenticated ? <NavBarPrivate /> : <NavBarPublic />)}
-                <div className="pt-24 flex justify-center items-center min-h-[50vh]">
+                <div className="pt-6 md:pt-24 flex justify-center items-center min-h-[50vh]">
                     <div className="animate-pulse flex flex-col items-center">
                         <div className="h-4 w-32 bg-gray-200 rounded mb-4"></div>
                         <div className="h-8 w-64 bg-gray-200 rounded"></div>
@@ -335,7 +335,7 @@ export default function ReportDetailPage() {
         <div className="px-0 sm:px-4 lg:px-8 py-2 min-h-screen bg-page-bg">
             {authChecked && (isAuthenticated ? <NavBarPrivate /> : <NavBarPublic />)}
 
-            <main className="pt-20 sm:pt-24 pb-24 md:pb-12 px-4 sm:px-6 max-w-7xl mx-auto font-sans">
+            <main className="pt-6 md:pt-24 pb-24 md:pb-12 px-4 sm:px-6 max-w-7xl mx-auto font-sans">
                 {/* Breadcrumbs */}
                 <div className="flex items-center gap-2 text-sm text-gray-500 mb-6 font-medium overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
                     <button
