@@ -30,16 +30,16 @@ const Navbar: React.FC = () => {
 
 
                     {/* Actions */}
-                    <div className="hidden md:block flex items-center space-x-3 sm:space-x-6">
+                    <div className="hidden md:flex items-center space-x-3 sm:space-x-6">
                         <button
                             onClick={() => router.push("/dashboard/report")}
-                            className="cursor-pointer bg-brand-primary text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all shadow-sm hover:shadow-md active:scale-95"
+                            className="h-10 cursor-pointer bg-brand-primary text-white px-3 sm:px-5 rounded-lg text-xs sm:text-sm font-bold transition-all shadow-sm hover:shadow-md active:scale-95 flex items-center justify-center"
                         >
                             + Report Issue
                         </button>
                         <button
                             onClick={() => router.push("/profile")}
-                            className="cursor-pointer shadow-sm p-2 rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors border border-gray-100"
+                            className="h-10 w-10 cursor-pointer shadow-sm p-2 rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors border border-gray-100 flex items-center justify-center"
                         >
                             <CircleUser size={20} />
                         </button>

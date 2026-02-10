@@ -71,7 +71,7 @@ export default function Home() {
           {/* CTAs */}
           <div className="flex sm:flex-row items-center justify-center gap-4">
             <Link href="/dashboard" className="flex items-center justify-center px-8 py-3 bg-[#124076] rounded-full text-white hover:bg-brand-primary transition-all shadow-xl hover:shadow-brand-primary/20 hover:-translate-y-1 w-72 group cursor-pointer text-md">
-              Browse Reports
+              Browse All Reports
               <ArrowRight size={22} className="ml-2 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -98,7 +98,7 @@ export default function Home() {
               <div className="relative z-10 flex-1">
                 <span className="inline-block px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-4 sm:6">Step 01</span>
                 <h3 className="text-xl sm:text-3xl font-bold text-gray-900 mb-2 sm:4">Capture & Report</h3>
-                <p className="text-gray-500 text-xs sm:text-base leading-relaxed max-w-sm mb-4 sm:8">
+                <p className="text-gray-500 text-xs sm:text-base leading-relaxed max-w-[160px] xs:max-w-[200px] sm:max-w-sm mb-4 sm:8">
                   Spot an issue? Just point and shoot so that the authorities and community are aware.
                 </p>
                 <div className="hidden sm:flex absolute sm:bottom-auto sm:relative lg:absolute lg:bottom-40 lg:left-15 z-20 items-center gap-2 sm:gap-3 bg-gray-900 text-white px-3 sm:px-5 py-2 sm:py-3 rounded-xl w-fit shadow-lg transform -rotate-1 group-hover:rotate-0 transition-transform">
