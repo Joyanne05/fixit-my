@@ -17,7 +17,7 @@ A community-driven platform for reporting and resolving local issues.
 ### Clone Repository
 
 ```bash
-git clone https://github.com/Joyanne05/fixitmy.git
+git clone https://github.com/Joyanne05/fixit-my.git
 ```
 
 ### Backend (FastAPI)
@@ -91,7 +91,7 @@ git clone https://github.com/Joyanne05/fixitmy.git
 - **On-the-spot Reporting**: Integrated camera support allowing users to capture and report issues instantly with photos, category, descriptions, and location.
 - **Anonymous Mode**: Report issues without revealing identity.
 - **Comment**: Update progress on issues.
-- **Gamification**: Earn points and badges for reporting (10pts), verifying (5pts), and commenting (2pts).
+- **Gamification**: Earn points and badges for reporting (10pts), verifying (5pts), and following/commenting (2pts).
 - **Mobile-First**: Fully responsive design with PWA capabilities.
 - **Offline Mode**: View previously loaded reports without internet through runtime caching.
 
