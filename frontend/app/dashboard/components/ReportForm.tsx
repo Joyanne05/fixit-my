@@ -5,6 +5,7 @@ import { api } from '@/lib/apiClient';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Modal from '@/shared/components/Modal';
+import LocationAutocomplete from '@/shared/components/LocationAutocomplete';
 
 
 
@@ -212,10 +213,11 @@ const CreateReportForm = () => {
                 <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
                   Location <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text" required
-                  value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })}
+                <LocationAutocomplete
+                  value={form.location}
+                  onChange={(val) => setForm({ ...form, location: val })}
                   placeholder="Enter the location of the issue (e.g., 89 Petaling St, Kuala Lumpur)"
+                  required
                   className="w-full border border-gray-200 rounded-lg p-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-all"
                 />
               </div>
