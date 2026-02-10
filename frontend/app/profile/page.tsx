@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import Modal from "@/shared/components/Modal";
+import { useAuth } from "@/shared/context/AuthContext";
 
 interface UserData {
     user_id: string;
@@ -99,6 +100,7 @@ const getActionLabel = (actionName: string) => {
 
 export default function ProfilePage() {
     const router = useRouter();
+    const { isAuthenticated, authChecked, signOut } = useAuth();
     const [user, setUser] = useState<UserData | null>(null);
     const [actions, setActions] = useState<UserAction[]>([]);
     const [myReports, setMyReports] = useState<MyReport[]>([]);
@@ -110,14 +112,13 @@ export default function ProfilePage() {
     const [showLogoutModal, setShowLogoutModal] = useState(false);
 
     useEffect(() => {
-        const checkSessionAndFetch = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
+        if (!authChecked) return;
+        if (!isAuthenticated) {
+            router.push("/");
+            return;
+        }
 
-            if (!session) {
-                router.push("/");
-                return;
-            }
-
+        const fetchProfileData = async () => {
             try {
                 const [userRes, actionsRes, reportsRes, badgesRes, allBadgesRes] = await Promise.all([
                     api.get<UserData>("/user/me"),
@@ -141,23 +142,21 @@ export default function ProfilePage() {
                 setTotalPoints(points);
             } catch (error) {
                 console.error("Error fetching profile data:", error);
-                // If fetching fails ensure we don't show broken state
             } finally {
                 setLoading(false);
             }
         };
 
-        checkSessionAndFetch();
-    }, [router]);
+        fetchProfileData();
+    }, [authChecked, isAuthenticated, router]);
 
     const handleLogout = async () => {
         try {
-            // Optional backend call
             await api.post("/auth/logout");
         } catch (error) {
             console.error("Backend logout error (ignoring):", error);
         } finally {
-            await supabase.auth.signOut();
+            await signOut();
             router.push("/");
         }
     };

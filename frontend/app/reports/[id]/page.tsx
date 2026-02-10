@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import NavBarPublic from "@/shared/components/NavBarPublic";
 import NavBarPrivate from "@/shared/components/NavBarPrivate";
-import { supabase } from "@/lib/supabaseClient";
 import SignInPromptModal from "@/shared/components/SignInPromptModal";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/apiClient";
@@ -11,6 +10,8 @@ import {
 } from "lucide-react";
 import { Report, ReportStatus, ReportDetailResponse, ReportFollower } from "@/types/report";
 import { Comment, CommentResponse } from "@/types/comment";
+import { usePointsToast } from "@/shared/context/PointsToastContext";
+import { useAuth } from "@/shared/context/AuthContext";
 
 
 function timeAgo(dateString: string) {
@@ -58,6 +59,8 @@ export default function ReportDetailPage() {
 
     const { id } = useParams();
     const router = useRouter();
+    const { showPointsToast } = usePointsToast();
+    const { isAuthenticated, authChecked } = useAuth();
     const [report, setReport] = useState<Report | null>(null);
     const [isFollowing, setIsFollowing] = useState(false);
     const [followers, setFollowers] = useState<ReportFollower[]>([]);
@@ -66,8 +69,6 @@ export default function ReportDetailPage() {
     const [newComment, setNewComment] = useState("");
     const [postingComment, setPostingComment] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [authChecked, setAuthChecked] = useState(false);
     const [showSignInModal, setShowSignInModal] = useState(false);
 
     // Verification state
@@ -80,21 +81,11 @@ export default function ReportDetailPage() {
     const [showFollowRequired, setShowFollowRequired] = useState(false);
 
     useEffect(() => {
-        const checkSession = async () => {
-            const { data } = await supabase.auth.getSession();
-            setIsAuthenticated(!!data.session);
-            setAuthChecked(true);
-        };
-        checkSession();
-    }, []);
-
-    useEffect(() => {
         const fetchReport = async () => {
             try {
                 const response = await api.get<ReportDetailResponse>(`/report/${id}`);
                 const { report: apiReport, followers, is_following } = response.data;
 
-                // Map to shared Report type
                 const mappedReport: Report = {
                     id: apiReport.report_id.toString(),
                     title: apiReport.title,
@@ -120,7 +111,7 @@ export default function ReportDetailPage() {
                 setReport(mappedReport);
                 setFollowers(followers);
                 setFollowersCount(followers.length);
-                setIsFollowing(is_following); // Set local state from API
+                setIsFollowing(is_following);
 
                 // Fetch comments
                 const commentsResponse = await api.get<CommentResponse>(`/report/comments/${id}`);
@@ -173,6 +164,7 @@ export default function ReportDetailPage() {
         try {
             await api.post(`/report/in-progress`, { report_id: id });
             setReport(prev => prev ? { ...prev, status: ReportStatus.IN_PROGRESS } : prev);
+            showPointsToast(5, "Marked report in progress");
         } catch (error) {
             console.error("Error marking in progress:", error);
         } finally {
@@ -203,6 +195,7 @@ export default function ReportDetailPage() {
             // Refresh verification status to show closed_by
             const response = await api.get<{ count: number; has_verified: boolean; closed_by: { name: string; avatar: string } | null }>(`/report/community-verify-status/${id}`);
             setClosedByUser(response.data.closed_by);
+            showPointsToast(5, "Marked report as closed");
         } catch (error) {
             console.error("Error marking closed:", error);
         } finally {
@@ -228,6 +221,7 @@ export default function ReportDetailPage() {
             const response = await api.post<{ count: number; status?: string }>(`/report/community-verify`, { report_id: id });
             setVerificationCount(response.data.count);
             setHasVerified(true);
+            showPointsToast(5, "Verified closed report");
 
             if (response.data.status === 'closed') {
                 setReport(prev => prev ? { ...prev, status: ReportStatus.RESOLVED } : prev);
@@ -248,6 +242,7 @@ export default function ReportDetailPage() {
             await api.post(`/report/follow`, { report_id: report?.id });
             setIsFollowing(true);
             setFollowersCount(prev => prev + 1);
+            showPointsToast(2, "Followed a report");
         } else {
             await api.post(`/report/unfollow`, { report_id: report?.id });
             setIsFollowing(false);
@@ -282,6 +277,7 @@ export default function ReportDetailPage() {
             } : prev);
 
             setNewComment("");
+            showPointsToast(2, "Posted a comment");
         } catch (error) {
             console.error("Error posting comment:", error);
         } finally {

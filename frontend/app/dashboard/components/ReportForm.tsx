@@ -6,11 +6,13 @@ import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Modal from '@/shared/components/Modal';
 import LocationAutocomplete from '@/shared/components/LocationAutocomplete';
+import { usePointsToast } from '@/shared/context/PointsToastContext';
 
 
 
 const CreateReportForm = () => {
   const router = useRouter();
+  const { showPointsToast } = usePointsToast();
   const [dragActive, setDragActive] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -130,6 +132,7 @@ const CreateReportForm = () => {
       setSelectedFiles([]);
       // Show success modal instead of direct push
       setShowSuccessModal(true);
+      showPointsToast(10, "Submitted a new report");
     } catch (error) {
       console.error("Error submitting report:", error);
       // Do not redirect if error

@@ -92,3 +92,32 @@ body {
   clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 70%, 0% 100%);
   z-index: 5;
 }
+
+/* Points Toast Animation */
+@keyframes toast-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateX(100%) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes toast-fade-out {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(60%) scale(0.9);
+  }
+}
+
+.points-toast {
+  animation:
+    toast-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+    toast-fade-out 0.3s ease-in 2.5s forwards;
+}

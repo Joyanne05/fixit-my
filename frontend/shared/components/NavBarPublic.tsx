@@ -1,23 +1,14 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Megaphone, Menu, X } from 'lucide-react';
 import AuthModal from '@/app/auth/components/AuthModal';
-import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/shared/context/AuthContext';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setIsAuthenticated(!!data.session);
-    };
-    checkSession();
-  }, []);
 
   return <>
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">

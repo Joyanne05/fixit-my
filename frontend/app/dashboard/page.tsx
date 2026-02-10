@@ -5,9 +5,9 @@ import { useEffect, useState } from "react";
 import ReportCard from "./components/ReportCard";
 import ReportSkeleton from "./components/ReportSkeleton";
 import { Report, ReportStatus } from "@/types/report";
-import { supabase } from "@/lib/supabaseClient";
 import SignInPromptModal from "@/shared/components/SignInPromptModal";
 import { Search } from "lucide-react";
+import { useAuth } from "@/shared/context/AuthContext";
 
 function timeAgo(dateString: string) {
   const date = new Date(dateString);
@@ -24,35 +24,26 @@ function timeAgo(dateString: string) {
 }
 
 export default function DashboardPage() {
+  const { isAuthenticated, authChecked, session } = useAuth();
   const [reports, setReports] = useState<Report[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authChecked, setAuthChecked] = useState(false);
   const [showSignInModal, setShowSignInModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   useEffect(() => {
-    // Check authentication status first, then fetch reports with proper auth
-    async function init() {
-      const { data } = await supabase.auth.getSession();
-      const hasSession = !!data.session;
-      setIsAuthenticated(hasSession);
-      setAuthChecked(true);
-      console.log("Token", data.session?.access_token);
+    if (!authChecked) return;
 
-      // Fetch reports with auth token if available
+    async function fetchReports() {
       try {
         let response;
-        if (hasSession && data.session?.access_token) {
-          // Authenticated request - include token for is_following info
+        if (isAuthenticated && session?.access_token) {
           response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/report/list`, {
             headers: {
-              'Authorization': `Bearer ${data.session.access_token}`
+              'Authorization': `Bearer ${session.access_token}`
             }
           });
         } else {
-          // Anonymous request
           response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/report/list`);
         }
 
@@ -82,8 +73,8 @@ export default function DashboardPage() {
       }
     }
 
-    init();
-  }, []);
+    fetchReports();
+  }, [authChecked, isAuthenticated, session]);
 
   // console.log("Reports:", reports);
 
