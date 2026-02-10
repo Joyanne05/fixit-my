@@ -1,21 +1,25 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Camera, CheckCircle, ChevronDown, ArrowLeft, EyeOff } from 'lucide-react';
+import { Camera, CheckCircle, ChevronDown, ArrowLeft, EyeOff, CloudUpload, WifiOff } from 'lucide-react';
 import { api } from '@/lib/apiClient';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Modal from '@/shared/components/Modal';
 import LocationAutocomplete from '@/shared/components/LocationAutocomplete';
 import { usePointsToast } from '@/shared/context/PointsToastContext';
+import { addPendingReport } from '@/lib/offlineQueue';
+import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus';
 
 
 
 const CreateReportForm = () => {
   const router = useRouter();
   const { showPointsToast } = usePointsToast();
+  const { isOnline, refreshPendingCount } = useOnlineStatus();
   const [dragActive, setDragActive] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showOfflineSuccessModal, setShowOfflineSuccessModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -82,6 +86,15 @@ const CreateReportForm = () => {
 
   const [errorMsg, setErrorMsg] = useState("");
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -93,14 +106,50 @@ const CreateReportForm = () => {
       return;
     }
 
-    if (!navigator.onLine) {
-      setErrorMsg("You are currently offline. Please connect to the internet to submit request.");
-      return;
-    }
-
     setErrorMsg("");
     setIsSubmitting(true);
 
+    // If offline, queue to IndexedDB
+    if (!isOnline) {
+      try {
+        let photoBase64: string | undefined;
+        let photoName: string | undefined;
+        let photoType: string | undefined;
+
+        if (selectedFiles.length > 0) {
+          photoBase64 = await fileToBase64(selectedFiles[0]);
+          photoName = selectedFiles[0].name;
+          photoType = selectedFiles[0].type;
+        }
+
+        await addPendingReport({
+          id: crypto.randomUUID(),
+          title: form.title,
+          category: form.category,
+          description: form.description,
+          location: form.location,
+          is_anonymous: isAnonymous,
+          photoBase64,
+          photoName,
+          photoType,
+          createdAt: new Date().toISOString(),
+        });
+
+        await refreshPendingCount();
+
+        setForm({ title: '', category: '', description: '', location: '', photo: null });
+        setSelectedFiles([]);
+        setShowOfflineSuccessModal(true);
+      } catch (error) {
+        console.error('Error saving report offline:', error);
+        setErrorMsg('Failed to save report for offline upload. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    // Online — submit directly via API
     const formData = new FormData();
     formData.append('title', form.title);
     formData.append('category', form.category);
@@ -108,7 +157,7 @@ const CreateReportForm = () => {
     formData.append('location', form.location);
     formData.append('is_anonymous', isAnonymous.toString());
     if (selectedFiles.length > 0) {
-      formData.append('photo', selectedFiles[0]); // Only the first image is sent
+      formData.append('photo', selectedFiles[0]);
     }
 
     const { data } = await supabase.auth.getSession();
@@ -121,21 +170,12 @@ const CreateReportForm = () => {
         },
       });
 
-      // Only redirect if form is not empty and submission succeeded
-      setForm({
-        title: '',
-        category: '',
-        description: '',
-        location: '',
-        photo: null
-      });
+      setForm({ title: '', category: '', description: '', location: '', photo: null });
       setSelectedFiles([]);
-      // Show success modal instead of direct push
       setShowSuccessModal(true);
       showPointsToast(10, "Submitted a new report");
     } catch (error) {
       console.error("Error submitting report:", error);
-      // Do not redirect if error
       setErrorMsg("An error occurred while submitting the report. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -148,7 +188,7 @@ const CreateReportForm = () => {
         {/* Back button on the top left side */}
         <div className="flex justify-start mb-6 md:mb-0">
           <button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => window.location.href = '/dashboard'}
             className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors bg-white px-4 py-2.5 rounded-xl border border-gray-100 shadow-sm active:scale-95"
           >
             <ArrowLeft size={18} strokeWidth={2.5} />
@@ -163,6 +203,16 @@ const CreateReportForm = () => {
               Help improve your community by reporting. Your contribution makes a difference.
             </p>
           </div>
+
+          {/* Offline banner */}
+          {isOnline === false && (
+            <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center gap-3">
+              <WifiOff size={18} className="text-amber-500 shrink-0" />
+              <p className="text-sm text-amber-700">
+                You&apos;re offline — reports will be saved and uploaded automatically when you reconnect
+              </p>
+            </div>
+          )}
 
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8">
 
@@ -347,7 +397,7 @@ const CreateReportForm = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => router.push('/dashboard')}
+                  onClick={() => window.location.href = '/dashboard'}
                   className="w-full sm:w-auto px-6 py-3 text-gray-600 font-semibold hover:text-gray-800 transition-colors"
                 >
                   Cancel
@@ -376,7 +426,7 @@ const CreateReportForm = () => {
       </div>
       <Modal
         isOpen={showSuccessModal}
-        onClose={() => router.push('/dashboard')}
+        onClose={() => window.location.href = '/dashboard'}
         title="Report Submitted"
       >
         <div className="text-center py-4">
@@ -388,8 +438,31 @@ const CreateReportForm = () => {
             Your issue has been successfully submitted and is now pending review. You can track its status in the dashboard.
           </p>
           <button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => window.location.href = '/dashboard'}
             className="w-full bg-brand-primary text-white py-3 rounded-lg font-semibold hover:bg-brand-secondary transition-colors"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </Modal>
+
+      {/* Offline Queued Modal */}
+      <Modal
+        isOpen={showOfflineSuccessModal}
+        onClose={() => window.location.href = '/dashboard'}
+        title="Report Queued"
+      >
+        <div className="text-center py-4">
+          <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CloudUpload className="text-amber-600" size={32} />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Report saved for upload</h3>
+          <p className="text-gray-600 mb-6">
+            Your report has been saved locally and will be automatically submitted once you&apos;re back online.
+          </p>
+          <button
+            onClick={() => window.location.href = '/dashboard'}
+            className="w-full bg-amber-500 text-white py-3 rounded-lg font-semibold hover:bg-amber-600 transition-colors"
           >
             Go to Dashboard
           </button>

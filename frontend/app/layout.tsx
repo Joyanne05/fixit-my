@@ -49,7 +49,7 @@ export default function RootLayout({
             {children}
           </div>
           <Footer />
-          <OfflineIndicator />
+          {/* <OfflineIndicator /> */}
           <InstallPrompt />
         </ClientProviders>
       </body>

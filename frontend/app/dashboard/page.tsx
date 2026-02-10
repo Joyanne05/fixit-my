@@ -6,6 +6,7 @@ import ReportCard from "./components/ReportCard";
 import ReportSkeleton from "./components/ReportSkeleton";
 import { Report, ReportStatus } from "@/types/report";
 import SignInPromptModal from "@/shared/components/SignInPromptModal";
+import PendingReportsBanner from "@/shared/components/PendingReportsBanner";
 import { Search } from "lucide-react";
 import { useAuth } from "@/shared/context/AuthContext";
 
@@ -141,6 +142,9 @@ export default function DashboardPage() {
               Showing {filteredReports.length} {filteredReports.length === 1 ? 'report' : 'reports'}
             </p>
           )}
+
+          {/* Pending Offline Reports Banner */}
+          {isAuthenticated && <PendingReportsBanner />}
 
           {/* Reports Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-8">

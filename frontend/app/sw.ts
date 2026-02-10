@@ -20,14 +20,14 @@ const serwist = new Serwist({
   navigationPreload: true,
   runtimeCaching: [
     ...defaultCache,
-    // Cache Dashboard page
+    // Cache all Dashboard pages (dashboard, dashboard/report, etc.)
     {
-      matcher: /\/dashboard$/,
+      matcher: /\/dashboard/,
       handler: new NetworkFirst({
         cacheName: "pages-dashboard",
         plugins: [
           new ExpirationPlugin({
-            maxEntries: 10,
+            maxEntries: 20,
             maxAgeSeconds: 60 * 60 * 24, // 1 day
           }),
         ],
@@ -87,6 +87,21 @@ const serwist = new Serwist({
             maxAgeSeconds: 60 * 60 * 24 * 7, // 1 week
           }),
         ],
+      }),
+    },
+    // Catch-all: cache any same-origin page navigation for offline access
+    {
+      matcher: ({ request, sameOrigin }) =>
+        sameOrigin && request.mode === "navigate",
+      handler: new NetworkFirst({
+        cacheName: "pages-all",
+        plugins: [
+          new ExpirationPlugin({
+            maxEntries: 50,
+            maxAgeSeconds: 60 * 60 * 24, // 1 day
+          }),
+        ],
+        networkTimeoutSeconds: 5,
       }),
     },
   ],
