@@ -326,6 +326,11 @@ async def add_community_confirmation(req: ReportConfirmRequest, user=Depends(get
         existing = supabase.table("community_confirmations").select("*").eq("report_id", req.report_id).eq("user_id", user.id).execute()
         if existing.data:
             raise HTTPException(status_code=400, detail="You have already verified this report")
+
+        # Check if user is following the report
+        is_following = supabase.table("report_followers").select("*").eq("report_id", req.report_id).eq("user_id", user.id).execute()
+        if not is_following.data:
+            raise HTTPException(status_code=400, detail="You must follow the report to verify it")
         
         # Insert verification
         supabase.table("community_confirmations").insert(

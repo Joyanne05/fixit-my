@@ -214,6 +214,12 @@ export default function ReportDetailPage() {
             setShowSignInModal(true);
             return;
         }
+
+        if (!isFollowing) {
+            setShowFollowRequired(true);
+            return;
+        }
+
         if (hasVerified) return;
 
         setUpdatingStatus(true);
@@ -489,7 +495,7 @@ export default function ReportDetailPage() {
                                 <div className="flex flex-col sm:flex-row justify-between items-start mb-6 gap-4">
                                     <div>
                                         <div className="flex items-center gap-3 mb-2">
-                                            <h3 className="text-xl font-bold text-gray-900">Confirm Resolution</h3>
+                                            <h3 className="text-xl font-bold text-gray-900">Community Verification</h3>
                                             <span className="bg-brand-bg-light text-brand-primary text-[10px] font-extrabold px-2 py-1 rounded uppercase tracking-wider">Active</span>
                                         </div>
                                         <p className="text-gray-500 text-sm max-w-lg leading-relaxed">
@@ -499,7 +505,7 @@ export default function ReportDetailPage() {
                                     <button
                                         onClick={handleCommunityVerify}
                                         disabled={hasVerified || updatingStatus}
-                                        className="w-full sm:w-auto bg-brand-primary hover:bg-brand-secondary text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-green-200 flex items-center justify-center gap-2 transition-all active:scale-95 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="w-full sm:w-auto bg-brand-primary hover:bg-brand-secondary text-white px-6 py-3 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <span className="bg-white/20 p-1 rounded-full"><Check size={14} strokeWidth={4} /></span>
                                         {hasVerified ? 'Already Verified' : "I Confirm It's Fixed"}
@@ -518,8 +524,10 @@ export default function ReportDetailPage() {
                                             </div>
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold text-gray-900">Marked by {closedByUser.name}</p>
-                                            <p className="text-xs text-gray-400 font-medium">Awaiting verification</p>
+                                            <p className="text-sm font-bold text-gray-900">Closed by {closedByUser.name}</p>
+                                            <p className="text-xs text-gray-400 font-medium">
+                                                {report.status === ReportStatus.RESOLVED ? 'Verified & Closed' : 'Awaiting verification'}
+                                            </p>
                                         </div>
                                     </div>
 
@@ -543,7 +551,7 @@ export default function ReportDetailPage() {
                             // LOCKED STATE
                             <div className="bg-white rounded-2xl p-5 sm:p-8 border-2 border-dashed border-gray-200 shadow-sm relative overflow-hidden group order-3 lg:order-none">
                                 <div className="opacity-40 blur-[2px] select-none pointer-events-none grayscale transition-all duration-500 group-hover:blur-[1px] group-hover:opacity-50">
-                                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">Confirm Resolution</h3>
+                                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">Community Verification</h3>
                                     <p className="text-sm sm:text-base text-gray-400 mb-6 max-w-md">Community members near the area can confirm the fix to archive this report.</p>
 
                                     <div className="w-full h-px bg-gray-100 mb-6"></div>
