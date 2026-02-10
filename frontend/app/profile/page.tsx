@@ -7,7 +7,6 @@ import {
     User, FileText, Settings, Trophy, Heart, CheckCircle,
     PlusCircle, MessageSquare, ArrowRight, LogOut
 } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
 import Modal from "@/shared/components/Modal";
 import { useAuth } from "@/shared/context/AuthContext";
 

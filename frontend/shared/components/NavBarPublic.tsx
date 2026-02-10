@@ -3,10 +3,8 @@ import React, { useState } from 'react';
 import { Megaphone, Menu, X } from 'lucide-react';
 import AuthModal from '@/app/auth/components/AuthModal';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/shared/context/AuthContext';
 
 const Navbar: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const router = useRouter();
 
