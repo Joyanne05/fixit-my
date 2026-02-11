@@ -219,21 +219,26 @@ export default function DashboardHeatmap({ selectedCategory }: DashboardHeatmapP
 
             {/* Legend (markers mode) */}
             {viewMode === "markers" && (
-                <div className="flex flex-wrap gap-4 mb-3 text-xs text-gray-500">
-                    {[
-                        { label: "Open", color: "#ef4444" },
-                        { label: "Acknowledged", color: "#f59e0b" },
-                        { label: "In Progress", color: "#3b82f6" },
-                        { label: "Closed", color: "#22c55e" },
-                    ].map((item) => (
-                        <span key={item.label} className="flex items-center gap-1.5">
-                            <span
-                                className="w-2.5 h-2.5 rounded-full inline-block"
-                                style={{ background: item.color }}
-                            />
-                            {item.label}
-                        </span>
-                    ))}
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
+                    <div className="flex flex-wrap gap-4 text-xs text-gray-500">
+                        {[
+                            { label: "Open", color: "#ef4444" },
+                            { label: "Acknowledged", color: "#f59e0b" },
+                            { label: "In Progress", color: "#3b82f6" },
+                            { label: "Closed", color: "#22c55e" },
+                        ].map((item) => (
+                            <span key={item.label} className="flex items-center gap-1.5">
+                                <span
+                                    className="w-2.5 h-2.5 rounded-full inline-block"
+                                    style={{ background: item.color }}
+                                />
+                                {item.label}
+                            </span>
+                        ))}
+                    </div>
+                    <p className="text-[11px] font-medium text-brand-primary/70 bg-brand-primary/5 px-2 py-0.5 rounded-full">
+                        Tip: Click markers to view report details
+                    </p>
                 </div>
             )}
 
