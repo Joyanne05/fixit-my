@@ -17,6 +17,8 @@ async def create_report(
     category: str = Form(...),
     description: str = Form(...),
     location: str = Form(...),
+    latitude: float | None = Form(None),
+    longitude: float | None = Form(None),
     is_anonymous: bool = Form(False),
     photo: UploadFile | None = File(None),
     user=Depends(get_current_user),
@@ -54,6 +56,8 @@ async def create_report(
                 "created_by": user.id,
                 "closed_by": None,
                 "location": location,
+                "latitude": latitude,
+                "longitude": longitude,
                 "photo_url": photo_url,
                 "is_anonymous": is_anonymous,
             }
@@ -100,6 +104,8 @@ async def list_reports(user=Depends(get_optional_user)):
                 created_by,
                 closed_by,
                 location,
+                latitude,
+                longitude,
                 photo_url,
                 created_at,
                 updated_at,
@@ -126,6 +132,8 @@ async def list_reports(user=Depends(get_optional_user)):
                 created_by,
                 closed_by,
                 location,
+                latitude,
+                longitude,
                 photo_url,
                 created_at,
                 updated_at,
@@ -150,6 +158,8 @@ async def list_reports(user=Depends(get_optional_user)):
                 "created_by": r["created_by"],
                 "closed_by": r["closed_by"],
                 "location": r["location"],
+                "latitude": r.get("latitude"),
+                "longitude": r.get("longitude"),
                 "photo_url": r["photo_url"],
                 "created_at": r["created_at"],
                 "updated_at": r["updated_at"],
@@ -163,6 +173,21 @@ async def list_reports(user=Depends(get_optional_user)):
         )
 
     return {"reports": clean_reports}
+
+
+# Heatmap data (lightweight)
+@router.get("/heatmap")
+async def get_heatmap_data():
+    """Return lightweight report data for the heatmap (only reports with coordinates)."""
+    result = (
+        supabase.table("reports")
+        .select("report_id, title, category, status, latitude, longitude")
+        .not_.is_("latitude", "null")
+        .not_.is_("longitude", "null")
+        .execute()
+    )
+
+    return {"reports": result.data if result.data else []}
 
 
 # Get report by ID (include creator info, comments, followers)

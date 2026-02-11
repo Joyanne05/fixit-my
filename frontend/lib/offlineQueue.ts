@@ -14,6 +14,8 @@ export interface PendingReport {
   category: string;
   description: string;
   location: string;
+  latitude?: number;
+  longitude?: number;
   is_anonymous: boolean;
   photoBase64?: string;
   photoName?: string;
@@ -123,6 +125,8 @@ export async function syncPendingReports(token: string): Promise<SyncResult> {
       formData.append('category', report.category);
       formData.append('description', report.description);
       formData.append('location', report.location);
+      if (report.latitude !== undefined) formData.append('latitude', report.latitude.toString());
+      if (report.longitude !== undefined) formData.append('longitude', report.longitude.toString());
       formData.append('is_anonymous', report.is_anonymous.toString());
 
       if (report.photoBase64 && report.photoName && report.photoType) {

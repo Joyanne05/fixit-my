@@ -14,6 +14,8 @@ export interface Report {
   status: ReportStatus;
   timestamp: string;
   location: string;
+  latitude?: number;
+  longitude?: number;
   is_following: boolean;
   followers_count: number;
   is_anonymous?: boolean;
@@ -31,6 +33,8 @@ export interface ReportDetail {
     category: string;
     status: string;
     location: string;
+    latitude?: number;
+    longitude?: number;
     photo_url: string;
     created_at: string;
     is_anonymous?: boolean;

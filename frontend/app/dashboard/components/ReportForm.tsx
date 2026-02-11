@@ -30,6 +30,8 @@ const CreateReportForm = () => {
     location: '',
     photo: null
   });
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
 
   // Check for quick report image from sessionStorage
   useEffect(() => {
@@ -128,6 +130,8 @@ const CreateReportForm = () => {
           category: form.category,
           description: form.description,
           location: form.location,
+          latitude: latitude ?? undefined,
+          longitude: longitude ?? undefined,
           is_anonymous: isAnonymous,
           photoBase64,
           photoName,
@@ -155,6 +159,8 @@ const CreateReportForm = () => {
     formData.append('category', form.category);
     formData.append('description', form.description);
     formData.append('location', form.location);
+    if (latitude !== null) formData.append('latitude', latitude.toString());
+    if (longitude !== null) formData.append('longitude', longitude.toString());
     formData.append('is_anonymous', isAnonymous.toString());
     if (selectedFiles.length > 0) {
       formData.append('photo', selectedFiles[0]);
@@ -270,7 +276,13 @@ const CreateReportForm = () => {
                 </label>
                 <LocationAutocomplete
                   value={form.location}
-                  onChange={(val) => setForm({ ...form, location: val })}
+                  onChange={(val, lat, lon) => {
+                    setForm({ ...form, location: val });
+                    if (lat !== undefined && lon !== undefined) {
+                      setLatitude(lat);
+                      setLongitude(lon);
+                    }
+                  }}
                   placeholder="Street, City, State"
                   required
                   className="w-full border border-gray-200 rounded-lg p-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-all"

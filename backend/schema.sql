@@ -35,6 +35,8 @@ CREATE TABLE reports (
     created_by uuid REFERENCES users(user_id),
     closed_by uuid REFERENCES users(user_id),
     location text,              
+    latitude double precision,
+    longitude double precision,
     photo_url text,
     is_anonymous boolean DEFAULT false,
     created_at timestamptz DEFAULT now(),
