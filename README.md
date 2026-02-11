@@ -1,7 +1,8 @@
 # FixItMY
 
 A community-driven platform for reporting and resolving local issues.
-<img width="700" alt="screens" src="https://github.com/user-attachments/assets/6b72e332-eec2-4003-93f7-54e31e349030" />
+<img width="700" alt="screen_mockups" src="https://github.com/user-attachments/assets/3186b773-a047-4b60-bc5f-c41374d384e3" />
+
 
 
 ## Tech Stack
@@ -11,7 +12,7 @@ A community-driven platform for reporting and resolving local issues.
 - **Database & Auth**: [Supabase](https://supabase.com/)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/)
 - **Icons**: [Lucide React](https://lucide.dev/)
-- **Location Services**: [Geoapify](https://www.geoapify.com/)
+- **Location Services**: [Geoapify](https://www.geoapify.com/), [Leaflet](https://leafletjs.com/)
 - **PWA**: [Serwist](https://serwist.pages.dev/) (Offline support & Service Workers)
 
 ## Setup
@@ -94,6 +95,7 @@ git clone https://github.com/Joyanne05/fixit-my.git
 - **Anonymous Mode**: Report issues without revealing identity.
 - **Comment**: Update progress on issues.
 - **Gamification**: Earn points and badges for reporting (10pts), verifying (5pts), and following/commenting (2pts).
+- **Maps View**: Visualize report data with colour-coded markers and heatmaps. 
 - **Mobile-First**: Fully responsive design with PWA capabilities.
 - **Offline Mode**: View previously loaded reports without internet through runtime caching.
 
