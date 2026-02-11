@@ -97,6 +97,10 @@ git clone https://github.com/Joyanne05/fixit-my.git
 - **Mobile-First**: Fully responsive design with PWA capabilities.
 - **Offline Mode**: View previously loaded reports without internet through runtime caching.
 
-## Assumptions
+## Project Assumptions & Constraints
 
-- Expect delay in loading due to spin-down time of backend server (15 minutes of inactivity).
+To ensure the best experience while testing **FixItMY**, please note the following technical assumptions:
+
+* **Initial Visit Requirement:** The application requires a stable internet connection during the **first load**. This allows the Service Worker to register and pre-cache the "App Shell". Once this process is complete, the app is fully available for offline use.
+* **Backend "Cold Starts":** This project uses the **Render Free Tier** for hosting the FastAPI backend. The server automatically spins down after **15 minutes of inactivity**. If the service is "sleeping," the first request may take **30–50 seconds** to wake up. Subsequent requests will be near-instant.
+* **Browser Compatibility:** For the best PWA experience (including "Add to Home Screen" prompts), it is assumed users are using a Chromium-based browser (Chrome, Edge) or Safari on iOS.
