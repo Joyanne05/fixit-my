@@ -11,7 +11,7 @@ A community-driven platform for reporting and resolving local issues.
 - **Database & Auth**: [Supabase](https://supabase.com/)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/)
 - **Icons**: [Lucide React](https://lucide.dev/)
-- **Location Services**: [Geoapify](https://www.geoapify.com/)
+- **Location Services**: [Geoapify](https://www.geoapify.com/), [Leaflet](https://leafletjs.com/)
 - **PWA**: [Serwist](https://serwist.pages.dev/) (Offline support & Service Workers)
 
 ## Setup
@@ -94,6 +94,7 @@ git clone https://github.com/Joyanne05/fixit-my.git
 - **Anonymous Mode**: Report issues without revealing identity.
 - **Comment**: Update progress on issues.
 - **Gamification**: Earn points and badges for reporting (10pts), verifying (5pts), and following/commenting (2pts).
+- **Maps View**: Visualize report data with colour-coded markers and heatmaps. 
 - **Mobile-First**: Fully responsive design with PWA capabilities.
 - **Offline Mode**: View previously loaded reports without internet through runtime caching.
 
