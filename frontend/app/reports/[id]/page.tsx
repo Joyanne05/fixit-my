@@ -455,7 +455,7 @@ export default function ReportDetailPage() {
                             className="w-full sm:w-auto bg-brand-primary text-white px-6 py-3 rounded-xl font-bold shadow-lg cursor-pointer hover:bg-brand-secondary transition-all flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <CheckCircle2 size={18} />
-                            {closedByUser ? 'Pending Verification' : 'Mark as Closed'}
+                            {report.status === ReportStatus.RESOLVED ? 'Closed' : (closedByUser ? 'Pending Verification' : 'Mark as Closed')}
                         </button>
                     </div>
                 </div>
