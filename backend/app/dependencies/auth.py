@@ -2,6 +2,7 @@ from fastapi import Depends, HTTPException, Header
 from typing import Optional
 from app.services.supabase_client import supabase
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from app.routers.admin_auth import ADMIN_SESSIONS
 
 security = HTTPBearer()
 
@@ -21,6 +22,18 @@ async def get_current_user(
 
     return res.user
 
+async def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    email = ADMIN_SESSIONS.get(token)
+    
+    if not email:
+        raise HTTPException(
+            status_code=403, 
+            detail="Invalid admin session",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return {"email": email, "role": "admin"}
+
 async def get_optional_user(authorization: Optional[str] = Header(None)):
     if not authorization:
         return None  # user not logged in
@@ -38,4 +51,3 @@ async def get_optional_user(authorization: Optional[str] = Header(None)):
         return None  # treat as anonymous
 
     return user
-

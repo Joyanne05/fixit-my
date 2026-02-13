@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Form, File, UploadFile, Depends, HTTPException
 from uuid import uuid4
 from app.services.supabase_client import supabase
-from app.dependencies.auth import get_current_user, get_optional_user
-from app.schemas.report_schema import Report, ReportListResponse, ReportDetailResponse, ReportFollowRequest, ReportCommentRequest, ReportInProgressRequest, ReportCloseRequest, ReportConfirmRequest
+from app.dependencies.auth import get_current_user, get_optional_user, get_current_admin
+from app.schemas.report_schema import Report, ReportListResponse, ReportDetailResponse, ReportFollowRequest, ReportCommentRequest, ReportInProgressRequest, ReportCloseRequest, ReportConfirmRequest, ReportFlagRequest, ReportModerationRequest
 from app.utils.action import record_user_action
 
 router = APIRouter(
@@ -115,6 +115,7 @@ async def list_reports(user=Depends(get_optional_user)):
                 """
             )
             .eq("user_follow.user_id", user_id)
+            .eq("moderation_status", "active")
             .order("created_at", desc=True)
             .execute()
         )
@@ -138,9 +139,11 @@ async def list_reports(user=Depends(get_optional_user)):
                 created_at,
                 updated_at,
                 category,
+                moderation_status,
                 followers:report_followers(count)
                 """
             )
+            .eq("moderation_status", "active")
             .order("created_at", desc=True)
             .execute()
         )
@@ -184,6 +187,7 @@ async def get_heatmap_data():
         .select("report_id, title, category, status, latitude, longitude")
         .not_.is_("latitude", "null")
         .not_.is_("longitude", "null")
+        .eq("moderation_status", "active")
         .execute()
     )
 
@@ -419,3 +423,110 @@ async def get_community_verify_status(report_id: int, user=Depends(get_optional_
     except Exception as e:
         print(f"Verify status error: {str(e)}")
         return {"count": 0, "has_verified": False, "closed_by": None}
+
+
+# Flag a report
+@router.post("/{report_id}/flag")
+async def flag_report(req: ReportFlagRequest, user=Depends(get_current_user)):
+    try:
+        # Check if already flagged
+        existing = supabase.table("report_flags").select("*").eq("report_id", req.report_id).eq("user_id", user.id).execute()
+        if existing.data:
+            raise HTTPException(status_code=400, detail="You have already flagged this report")
+
+        supabase.table("report_flags").insert(
+            {
+                "report_id": req.report_id, 
+                "user_id": user.id,
+                "reason": req.reason
+            }
+        ).execute()
+        
+        return {"message": "Report flagged successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Flag error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error flagging report")
+
+
+# Moderate a report (Admin)
+@router.patch("/{report_id}/moderation")
+async def moderate_report(req: ReportModerationRequest, user=Depends(get_current_admin)):
+    try:
+        supabase.table("reports").update({"moderation_status": req.status}).eq("report_id", req.report_id).execute()
+        return {"message": f"Report marked as {req.status}"}
+    except Exception as e:
+        print(f"Moderation error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error updating moderation status")
+
+
+# Admin: Get stats
+@router.get("/admin/stats")
+async def admin_get_stats(user=Depends(get_current_admin)):
+    try:
+        # Total reports
+        total_res = supabase.table("reports").select("report_id", count="exact").execute()
+        total = total_res.count if total_res.count is not None else 0
+        
+        # Flagged reports (unique reports with flags)
+        # simplistic count for separate table isn't direct in 1 query without join, but we can count distinct report_ids in flags
+        # For now, let's get count of flags
+        flags_res = supabase.table("report_flags").select("report_id", count="exact").execute()
+        flagged_count = flags_res.count if flags_res.count is not None else 0
+        
+        # Pending verifications (in progress)
+        pending_res = supabase.table("reports").select("report_id", count="exact").eq("status", "in_progress").execute()
+        pending = pending_res.count if pending_res.count is not None else 0
+        
+        # Active reports
+        active_res = supabase.table("reports").select("report_id", count="exact").eq("moderation_status", "active").execute()
+        active = active_res.count if active_res.count is not None else 0
+
+        return {
+            "total_reports": total,
+            "flagged_reports": flagged_count, 
+            "pending_verifications": pending,
+            "active_reports": active
+        }
+    except Exception as e:
+        print(f"Stats error: {str(e)}")
+        return {"error": str(e)}
+
+
+# Admin: List reports
+@router.get("/admin/list")
+async def admin_list_reports(user=Depends(get_current_admin)):
+    try:
+        # Get all reports with flag count
+        result = (
+            supabase.table("reports")
+            .select(
+                """
+                *,
+                flags:report_flags(count),
+                users:created_by(name, avatar)
+                """
+            )
+            .order("created_at", desc=True)
+            .execute()
+        )
+        
+        reports = []
+        for r in result.data:
+            # Safely get flag count
+            flags_data = r.get("flags", [])
+            r["flag_count"] = flags_data[0]["count"] if flags_data and len(flags_data) > 0 else 0
+            
+            # Simplify user
+            if r.get("users"):
+                r["user"] = r["users"]
+            reports.append(r)
+            
+        # Sort by flag count desc
+        reports.sort(key=lambda x: x["flag_count"], reverse=True)
+        
+        return {"reports": reports}
+    except Exception as e:
+        print(f"Admin list error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error fetching admin reports")

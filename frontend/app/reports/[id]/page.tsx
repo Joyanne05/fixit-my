@@ -5,9 +5,23 @@ import NavBarPrivate from "@/shared/components/NavBarPrivate";
 import SignInPromptModal from "@/shared/components/SignInPromptModal";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/apiClient";
+
 import {
-    Bell, CheckCircle2, Circle, User, MessageSquare, ArrowLeft, Lock, Check, ImageOff, Zap, Droplets, Trees, ShieldAlert, HardHat, SendHorizontal
+    Bell, CheckCircle2, Circle, User, MessageSquare, ArrowLeft, Lock, Check, ImageOff, Zap, Droplets, Trees, ShieldAlert, HardHat, SendHorizontal, Flag
 } from "lucide-react";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/shared/components/shadcn/dialog";
+import { Button } from "@/shared/components/shadcn/button";
+import { Label } from "@/shared/components/shadcn/label";
+import { Textarea } from "@/shared/components/shadcn/textarea";
+import { Input } from "@/shared/components/shadcn/input";
 import { Report, ReportStatus, ReportDetailResponse, ReportFollower } from "@/types/report";
 import { Comment, CommentResponse } from "@/types/comment";
 import { usePointsToast } from "@/shared/context/PointsToastContext";
@@ -370,6 +384,41 @@ export default function ReportDetailPage() {
                         </div>
 
                         <div className="flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0">
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <button className="p-2.5 rounded-xl border border-gray-200 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-colors" title="Flag as inappropriate">
+                                        <Flag size={20} />
+                                    </button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Flag Report</DialogTitle>
+                                        <DialogDescription>
+                                            Is this report inappropriate or spam? Let us know.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="grid gap-4 py-4">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="reason">Reason</Label>
+                                            <Input id="reason" placeholder="e.g. Spam, Offensive content" />
+                                        </div>
+                                    </div>
+                                    <DialogFooter>
+                                        <Button type="submit" onClick={async () => {
+                                            const reason = (document.getElementById('reason') as HTMLInputElement).value;
+                                            if (!reason) return;
+                                            try {
+                                                await api.post(`/report/${report.id}/flag`, { report_id: report.id, reason });
+                                                // Close dialog logic or show toast
+                                                showPointsToast(0, "Report flagged for review");
+                                            } catch (e) {
+                                                console.error(e);
+                                            }
+                                        }}>Submit Report</Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+
                             <button onClick={handleFollow} className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-brand-primary text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all hover:bg-brand-secondary active:scale-95 cursor-pointer">
                                 <Bell size={18} />
                                 {isFollowing ? 'Unfollow Report' : 'Follow Report'}

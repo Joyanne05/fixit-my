@@ -27,6 +27,7 @@ class Report(ReportBase):
     closed_by: Optional[UUID] = None
     created_at: datetime
     updated_at: datetime
+    moderation_status: str = "active"
     
     # Optional nested data from Supabase joins
     users: Optional[UserMinimal] = None
@@ -61,3 +62,11 @@ class ReportCloseRequest(BaseModel):
 
 class ReportConfirmRequest(BaseModel):
     report_id: int
+
+class ReportFlagRequest(BaseModel):
+    report_id: int
+    reason: str
+
+class ReportModerationRequest(BaseModel):
+    report_id: int
+    status: str
