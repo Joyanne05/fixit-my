@@ -129,7 +129,7 @@ export default function SignInPromptModal({ isOpen, onClose }: SignInPromptModal
                         <div>
                             <input
                                 type="email"
-                                placeholder="Admin Email"
+                                placeholder="admin1@gmail.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
@@ -139,7 +139,7 @@ export default function SignInPromptModal({ isOpen, onClose }: SignInPromptModal
                         <div>
                             <input
                                 type="password"
-                                placeholder="Password"
+                                placeholder="Admin12345*"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
