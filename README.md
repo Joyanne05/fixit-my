@@ -3,14 +3,12 @@
 A community-driven platform for reporting and resolving local issues.
 <img width="700" alt="screen_mockups" src="https://github.com/user-attachments/assets/3186b773-a047-4b60-bc5f-c41374d384e3" />
 
-
-
 ## Tech Stack
 
 - **Frontend**: [Next.js](https://nextjs.org/) (Deployed on [Vercel](https://vercel.com/))
-- **Backend**: [FastAPI](https://fastapi.tiangolo.com/) (Deployed on [Render](https://render.com/) Free Tier with spin-down time after 15 minutes of inactivity)
+- **Backend**: [FastAPI](https://fastapi.tiangolo.com/) (Deployed on [Render](https://render.com/))
 - **Database & Auth**: [Supabase](https://supabase.com/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) & [Shadcn UI](https://ui.shadcn.com/)
 - **Icons**: [Lucide React](https://lucide.dev/)
 - **Location Services**: [Geoapify](https://www.geoapify.com/), [Leaflet](https://leafletjs.com/)
 - **PWA**: [Serwist](https://serwist.pages.dev/) (Offline support & Service Workers)
@@ -61,48 +59,22 @@ git clone https://github.com/Joyanne05/fixit-my.git
 4. **Run**: `npm run dev`
    - App runs at: `http://localhost:3000`
 
-## Folder Structure
-
-```
-/backend
-  /app
-    /dependencies # API dependencies (auth)
-    /routers      # API endpoints (auth, reports, users)
-    /schemas      # Pydantic models
-    /services     # Business logic & external services
-    /utils        # Helper functions
-    main.py       # Application entry point
-  schema.sql      # Database schema definition
-
-/frontend
-  /app
-    /auth         # Auth pages & components
-    /dashboard    # Main user dashboard
-    /reports      # Report detail pages
-    /profile      # User profile & stats
-  /lib            # API & Supabase clients
-  /public         # Static assets & PWA icons
-  /shared
-    /components   # Reusable UI components
-    /context      # Global state (Auth, Toast)
-  /types          # TypeScript definitions
-```
-
 ## Features
 
 - **Google Single Sign-On**: Secure login via Supabase.
 - **On-the-spot Reporting**: Integrated camera support allowing users to capture and report issues instantly with photos, category, descriptions, and location.
+- **Community Verification**: Issues marked as "Closed" require community verification votes to ensure they are truly resolved.
+- **Admin Dashboard**: Dedicated interface for administrators to manage reports, users, and oversee platform activity.
 - **Anonymous Mode**: Report issues without revealing identity.
-- **Comment**: Update progress on issues.
+- **Comments & Updates**: Follow reports to get notified on progress and discuss with the community.
 - **Gamification**: Earn points and badges for reporting (10pts), verifying (5pts), and following/commenting (2pts).
-- **Maps View**: Visualize report data with colour-coded markers and heatmaps. 
-- **Mobile-First**: Fully responsive design with PWA capabilities.
-- **Offline Mode**: View previously loaded reports without internet through runtime caching.
+- **Maps View**: Visualize report data with colour-coded markers and heatmaps to identify high-density areas.
+- **PWA Capable**: Installable as a native-like app with offline capabilities.
 
 ## Project Assumptions & Constraints
 
 To ensure the best experience while testing **FixItMY**, please note the following technical assumptions:
 
-* **Initial Visit Requirement:** The application requires a stable internet connection during the **first load**. This allows the Service Worker to register and pre-cache the "App Shell". Once this process is complete, the app is fully available for offline use.
-* **Backend "Cold Starts":** This project uses the **Render Free Tier** for hosting the FastAPI backend. The server automatically spins down after **15 minutes of inactivity**. If the service is "sleeping," the first request may take **30–50 seconds** to wake up. Subsequent requests will be near-instant.
-* **Browser Compatibility:** For the best PWA experience (including "Add to Home Screen" prompts), it is assumed users are using a Chromium-based browser (Chrome, Edge) or Safari on iOS.
+- **Initial Visit Requirement:** The application requires a stable internet connection during the **first load**. This allows the Service Worker to register and pre-cache the "App Shell". Once this process is complete, the app is fully available for offline use.
+- **Backend "Cold Starts":** This project uses the **Render Free Tier** for hosting the FastAPI backend. The server automatically spins down after **15 minutes of inactivity**. If the service is "sleeping," the first request may take **30–50 seconds** to wake up. Subsequent requests will be near-instant.
+- **Browser Compatibility:** For the best PWA experience (including "Add to Home Screen" prompts), it is assumed users are using a Chromium-based browser (Chrome, Edge) or Safari on iOS.
